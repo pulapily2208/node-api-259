@@ -19,11 +19,17 @@ const {
   loginRules,
   loginValidator,
 } = require("../apps/middlewares/authValidator");
-
+const {
+    createCategoryRules,
+    updateCategoryRules,
+    createCategoryValidator,
+} = require("../apps/middlewares/categoryValidator");
 const {
   verifyAccessToken,
   verifyRefreshToken,
 } = require("../apps/middlewares/customerAuth");
+
+
 
 router.post(
   "/auth/customers/register",
@@ -50,6 +56,20 @@ router.get(
 
 router.get("/categories", CategoryController.findAll);
 router.get("/categories/:id", CategoryController.findOne);
+router.post(
+    "/categories",
+    createCategoryRules,
+    createCategoryValidator,
+    CategoryController.create
+);
+router.patch(
+    "/categories/:id",
+    updateCategoryRules,
+    createCategoryValidator,
+    CategoryController.update
+);
+router.delete("/categories/:id", CategoryController.remove);
+
 router.get("/products", ProductController.findAll);
 router.get("/products/:id/comments", CommentController.findByProductId);
 router.post("/products/:id/comments", CommentController.create);
