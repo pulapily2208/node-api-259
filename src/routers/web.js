@@ -30,7 +30,7 @@ const {
 } = require("../apps/middlewares/customerAuth");
 
 
-
+// customer
 router.post(
   "/auth/customers/register",
   registerValidator,
@@ -54,6 +54,7 @@ router.get(
   CustomerAuthController.getMe
 );
 
+// category
 router.get("/categories", CategoryController.findAll);
 router.get("/categories/:id", CategoryController.findOne);
 router.post(
@@ -70,10 +71,16 @@ router.patch(
 );
 router.delete("/categories/:id", CategoryController.remove);
 
+// product
 router.get("/products", ProductController.findAll);
+router.post("/products", ProductController.create);
 router.get("/products/:id/comments", CommentController.findByProductId);
 router.post("/products/:id/comments", CommentController.create);
 router.get("/products/:id", ProductController.findOne);
+router.patch("/products/:id", ProductController.update);
+router.delete("/products/:id", ProductController.remove);
+
+
 
 router.post(
   "/customers/orders",
