@@ -61,7 +61,7 @@ exports.login = async (req, res) => {
     if (!isEmail)
       return res.status(400).json({
         status: "error",
-        maessage: "Invalid email",
+        message: "Invalid email",
       });
 
     // Check password
@@ -69,7 +69,7 @@ exports.login = async (req, res) => {
     if (!isPassword)
       return res.status(400).json({
         status: "error",
-        maessage: "Invalid password",
+        message: "Invalid password",
       });
 
     if (isEmail && isPassword) {
