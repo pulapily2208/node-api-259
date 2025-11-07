@@ -1,0 +1,128 @@
+<%-include("../layout/head")%>
+<%-include("../("../layout/header")%>
+<%-include("../layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+    <div class="row">
+        <ol class="breadcrumb mt-3">
+            <li>
+                <a href="/admin/dashboard">
+                    <svg class="glyph stroked home">
+                        <use xlink:href="#stroked-home"></use>
+                    </svg>
+                </a>
+            </li>
+            <li class="active">Quản lý Banner / Slider</li>
+        </ol>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Danh sách Banner / Slider</h1>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="pt-3 text-left ms-4">
+            <a href="/admin/banners/create" class="btn btn-success">
+                <i class="glyphicon glyphicon-plus"></i> Thêm Banner / Slider
+            </a>
+        </div>
+
+                <ul class="nav nav-tabs mt-3 border ms-4 me-4">
+            <li class="<%= type == '' ?  'active' : '' %>"><a data-toggle="tab" href="/admin/banners">Tất cả</a></li>
+            <li class="<%= type == 'banner' ?  'active' : '' %>"><a data-toggle="tab" href="/admin/banners?type=banner">Banner</a></li>
+            <li class="<%= type == 'slider' ?  'active' : '' %>"><a data-toggle="tab" href="/admin/banners?type=slider">Slider</a></li>
+        </ul>
+
+        <div class="panel-body tab-content">
+                        <div id="all" class="tab-pane fade in active">
+                <% if (ads.length===0) { %>
+                    <p class="text-center mt-3">Chưa có banner hay slider nào!</p>
+                    <% } else { %>
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                                                        <th style="width: 5%" class="text-center">ID</th>
+                                    <th style="width: 20%" class="text-center">Tên</th>
+                                    <th style="width: 25%" class="text-center">Ảnh</th>
+                                    <th style="width: 10%" class="text-center">Loại</th>
+                                    <th style="width: 15%" class="text-center">Link</th>
+                                    <th style="width: 10%" class="text-center">Trạng thái</th>
+                                    <th style="width: 15%" class="text-center">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% ads.forEach((ad, index)=> { %>
+                                    <tr>
+                                        <td class="text-center">
+                                            <%= index + 1 %>
+                                        </td>
+                                        <td>
+                                            <%= ad.name %>
+                                        </td>
+                                        <td class="text-center">
+                                            <img src="/uploads/<%= ad.thumbnail_ads %>"
+                                                style="max-width:200px; max-height:100px;">
+                                        </td>
+                                        <td class="text-center">
+                                            <%= ad.type==='banner' ? "Banner" : "Slider" %>
+                                        </td>
+                                        <td><a href="<%= ad.link %>" target="_blank">
+                                                <%= ad.link %>
+                                            </a></td>
+                                        <td class="text-center">
+                                            <span
+                                                class="label <%= ad.status === 'active' ? 'label-success' : 'label-danger' %>">
+                                                <%= ad.status==='active' ? 'Hiển thị' : 'Ẩn' %>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="/admin/banners/edit/<%= ad._id %>"
+                                                class="btn btn-warning btn-sm">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                            </a>
+                                            <a href="/admin/banners/delete/<%= ad._id %>"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Bạn có chắc muốn xóa không?');">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                        <% } %>
+            </div>
+            <div class="panel-footer">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                                                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                            <a class="page-link" href="/admin/banners?page=<%= prev %>">&laquo;</a>
+                        </li>
+                        <% for (let pageNumber of paginate) { %>
+                            <% if (pageNumber==="..." ) { %>
+                                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                                <% } else { %>
+                                    <li class="page-item <%= page === pageNumber ? 'active' : '' %>">
+                                        <a class="page-link" href="/admin/banners?page=<%= pageNumber %>">
+                                            <%= pageNumber %>
+                                        </a>
+                                    </li>
+                                    <% } %>
+                                        <% } %>
+                                                                                        <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                                                <a class="page-link"
+                                                    href="/admin/banners?page=<%= next %>">&raquo;</a>
+                                            </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/jquery-1.11.1.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+
+<%-include("../layout/footer")%>

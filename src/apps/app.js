@@ -7,7 +7,6 @@ const session = require('express-session');
 const flash = require('connect-flash');
 
 const app = express();
-
 app.use("/static/admin", express.static(path.join(__dirname, "../public/admin"))); 
 app.use("/uploads", express.static(path.join(__dirname, "../public/upload")));
 app.set("views", path.join(__dirname, "views"));

@@ -78,12 +78,12 @@ exports.store = async (req, res) => {
     }
 
     try {
-        const image = "default_product.png"; 
+        const image = req.file ? req.file.originalname : "default_product.png";
 
         await ProductModel.create({
             category_id, name, image, price, status, accessories, promotion, details,
-            is_stock: is_stock === 'on' || is_stock === true,
-            is_featured: is_featured === 'on' || is_featured === true,
+            is_stock: is_stock === '1',
+            is_featured: is_featured === 'on' ,
         });
 
         req.flash('success', `Thêm sản phẩm "${name}" thành công!`);
@@ -134,12 +134,16 @@ exports.update = async (req, res) => {
     }
 
     try {
+        const product = await ProductModel.findById(id);
         const updateData = {
             category_id, name, price, status, accessories, promotion, details,
-            is_stock: is_stock === 'on' || is_stock === true,
-            is_featured: is_featured === 'on' || is_featured === true,
+            is_stock: is_stock === '1' ,
+            is_featured: is_featured === 'on' ,
+            image: product ? product.image : "default_product.png",
         };
-
+        if (req.file) {
+            updateData.image = req.file.originalname;
+        }
         const updatedProduct = await ProductModel.findByIdAndUpdate(id, updateData, { new: true });
 
         if (!updatedProduct) {
