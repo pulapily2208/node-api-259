@@ -96,7 +96,7 @@ exports.store = async (req, res) => {
             url: url || '#', 
             position: Number(position) || 0,
             target: target === 'on', 
-            publish: publish === 'on', 
+            publish: publish === 'true', 
         };
         
         if (!fs.existsSync(ADS_UPLOAD_DIR)) {
@@ -168,7 +168,7 @@ exports.update = async (req, res) => {
             url: url || '#', 
             position: Number(position) || 0,
             target: target === 'on', 
-            publish: publish === 'on',
+            publish: publish === 'true',
             image: oldAd.image,
         };
 
