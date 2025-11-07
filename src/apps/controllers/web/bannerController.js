@@ -4,7 +4,6 @@ const { body, validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
 
-// Thư mục đích tuyệt đối để di chuyển file: [Dự án Root]/public/upload/ads
 const ADS_UPLOAD_DIR = path.join(__dirname, '..', '..', '..', 'public', 'upload', 'ads');
 
 // --- 1. INDEX: Hiển thị danh sách Banner / Slider ---
@@ -14,18 +13,13 @@ exports.index = async (req, res) => {
         const limit = 10; 
         const skip = page * limit - limit;
         const type = req.query.type || "";
-
         let filter = {};
-        if (type === "banner" || type === "slider") {
-            // LƯU Ý: Cần trường 'type' trong Model để filter
-            filter.type = type; 
-        }
         
         const totalAds = await BannerModel.countDocuments(filter);
         const totalPages = Math.ceil(totalAds / limit);
         
         const ads = await BannerModel.find(filter)
-            .sort({ position: 1, _id: -1 })
+            .sort({_id: -1 })
             .skip(skip)
             .limit(limit);
         
@@ -34,16 +28,15 @@ exports.index = async (req, res) => {
 
         const mappedAds = ads.map(ad => ({
             _id: ad._id,
-            name: ad.name, // Cần trường 'name' trong Model
-            thumbnail_ads: ad.image, 
-            type: ad.type, // Cần trường 'type' trong Model
+            image: ad.image, 
             link: ad.url, 
-            status: ad.publish ? 'active' : 'inactive', 
+            position: ad.position, 
+            publish: ad.publish, 
         }));
 
-        res.render("admin/banners/banner", { // <-- SỬA VIEW PATH
+        res.render("admin/banners/banner", {
             ads: mappedAds,
-            title: "Quản Lý Banner/Slider",
+            title: "Quản Lý quảng cáo",
             paginate: paginationArray,
             prev: pagesData.hasPrev ? pagesData.prev : 1,
             next: pagesData.hasNext ? pagesData.next : totalPages,
@@ -64,7 +57,7 @@ exports.index = async (req, res) => {
 
 // --- 2. CREATE (GET): Hiển thị form Thêm Banner ---
 exports.create = async (req, res) => {
-    res.render("admin/banners/add_banner", { // <-- SỬA VIEW PATH
+    res.render("admin/banners/add_banner", {
         title: "Thêm Banner/Slider",
         errors: req.flash('errors'),
         oldData: req.flash('oldData')[0] || {}, 
@@ -74,8 +67,6 @@ exports.create = async (req, res) => {
 
 // --- 3. STORE RULES: Validation cho form ---
 exports.storeRules = [
-    body("name").notEmpty().withMessage("Tên/Tiêu đề là bắt buộc"),
-    body("type").isIn(['banner', 'slider']).withMessage("Loại quảng cáo không hợp lệ"),
     body("url").optional({ checkFalsy: true }).isURL().withMessage("URL không hợp lệ"),
     body("position").optional({ checkFalsy: true }).isInt({ min: 0 }).withMessage("Vị trí phải là số nguyên không âm"),
 ];
@@ -85,8 +76,7 @@ exports.storeRules = [
 exports.store = async (req, res) => {
     const errors = validationResult(req);
     const { body, file } = req;
-    // LƯU Ý: Cần trường 'name' và 'type' trong Model
-    const { name, type, url, position, target, publish } = body; 
+    const { url, position, target, publish } = body; 
 
     if (!file) {
         req.flash('errors', [{ msg: 'Hình ảnh quảng cáo là bắt buộc.' }]);
@@ -102,8 +92,6 @@ exports.store = async (req, res) => {
 
     try {
         let ads = {
-            name: name,
-            type: type,
             image: `/ads/${file.filename}`, 
             url: url || '#', 
             position: Number(position) || 0,
@@ -120,7 +108,7 @@ exports.store = async (req, res) => {
         );
         
         await BannerModel.create(ads);
-        req.flash('success', `Thêm ${type} "${name}" thành công!`);
+        req.flash('success', `Thêm banner thành công!`); 
         return res.redirect("/admin/banners"); 
         
     } catch (error) {
@@ -144,9 +132,8 @@ exports.edit = async (req, res) => {
             req.flash('errors', [{ msg: 'Banner/Slider không tồn tại.' }]);
             return res.redirect("/admin/banners"); 
         }
-
         res.render("admin/banners/edit_banner", {
-            title: `Chỉnh Sửa Banner/Slider: ${ad.name}`,
+            title: `Chỉnh Sửa Banner/Slider`,
             ad: ad,
             errors: req.flash('errors')
         });
@@ -163,8 +150,7 @@ exports.update = async (req, res) => {
     const errors = validationResult(req);
     const { id } = req.params;
     const { body, file } = req;
-    // LƯU Ý: Cần trường 'name' và 'type' trong Model
-    const { name, type, url, position, target, publish } = body; 
+    const { url, position, target, publish } = body; 
     
     if (!errors.isEmpty()) {
         req.flash('errors', errors.array());
@@ -179,8 +165,6 @@ exports.update = async (req, res) => {
         }
         
         let updateData = {
-            name: name,
-            type: type,
             url: url || '#', 
             position: Number(position) || 0,
             target: target === 'on', 
@@ -208,7 +192,7 @@ exports.update = async (req, res) => {
         }
         
         await BannerModel.updateOne({_id: id}, {$set: updateData});
-        req.flash('success', `Cập nhật quảng cáo "${name}" thành công!`);
+        req.flash('success', `Cập nhật banner thành công!`); 
         return res.redirect("/admin/banners"); 
         
     } catch (error) {
@@ -238,7 +222,7 @@ exports.destroy = async (req, res) => {
             }
         }
         
-        req.flash('success', `Xóa quảng cáo "${deletedAd.name}" thành công!`);
+        req.flash('success', `Xóa banner thành công!`); 
         res.redirect("/admin/banners"); 
     } catch (error) {
         console.error(`Lỗi khi xóa Banner ID ${req.params.id}:`, error);
@@ -246,3 +230,91 @@ exports.destroy = async (req, res) => {
         return res.redirect("/admin/banners"); 
     }
 };
+
+// --- 8. MOVE UP: Di chuyển quảng cáo lên (position - 1) ---
+exports.moveUp = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const currentBanner = await BannerModel.findById(id);
+
+        if (!currentBanner) {
+            req.flash('errors', [{ msg: 'Banner không tồn tại.' }]);
+            return res.redirect("/admin/banners");
+        }
+
+        const currentPosition = currentBanner.position;
+
+        // 1. Tìm banner ngay trước đó (có position = currentPosition - 1)
+        const previousBanner = await BannerModel.findOne({ position: currentPosition - 1 });
+
+        // 2. Nếu tìm thấy banner trước, thực hiện hoán đổi
+        if (previousBanner) {
+            // Cập nhật 1: Banner hiện tại đi lên (vị trí - 1)
+            await BannerModel.updateOne(
+                { _id: currentBanner._id },
+                { position: currentPosition - 1 }
+            );
+
+            // Cập nhật 2: Banner trước đó đi xuống (vị trí + 1, tức là vị trí cũ của banner hiện tại)
+            await BannerModel.updateOne(
+                { _id: previousBanner._id },
+                { position: currentPosition }
+            );
+
+            req.flash('success', 'Đã di chuyển quảng cáo lên một vị trí.');
+        } else {
+            req.flash('errors', [{ msg: 'Quảng cáo đã ở vị trí cao nhất.' }]);
+        }
+
+        return res.redirect("/admin/banners");
+
+    } catch (error) {
+        console.error(`Lỗi khi di chuyển Banner ID ${req.params.id} lên:`, error);
+        req.flash('errors', [{ msg: `Lỗi hệ thống khi di chuyển: ${error.message}` }]);
+        return res.redirect("/admin/banners");
+    }
+};
+
+// --- 9. MOVE DOWN: Di chuyển quảng cáo xuống (position + 1) ---
+exports.moveDown = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const currentBanner = await BannerModel.findById(id);
+
+        if (!currentBanner) {
+            req.flash('errors', [{ msg: 'Banner không tồn tại.' }]);
+            return res.redirect("/admin/banners");
+        }
+
+        const currentPosition = currentBanner.position;
+
+        // 1. Tìm banner ngay sau đó (có position = currentPosition + 1)
+        const nextBanner = await BannerModel.findOne({ position: currentPosition + 1 });
+
+        // 2. Nếu tìm thấy banner sau, thực hiện hoán đổi
+        if (nextBanner) {
+            // Cập nhật 1: Banner hiện tại đi xuống (vị trí + 1)
+            await BannerModel.updateOne(
+                { _id: currentBanner._id },
+                { position: currentPosition + 1 }
+            );
+
+            // Cập nhật 2: Banner sau đó đi lên (vị trí - 1, tức là vị trí cũ của banner hiện tại)
+            await BannerModel.updateOne(
+                { _id: nextBanner._id },
+                { position: currentPosition }
+            );
+
+            req.flash('success', 'Đã di chuyển quảng cáo xuống một vị trí.');
+        } else {
+            req.flash('errors', [{ msg: 'Quảng cáo đã ở vị trí thấp nhất.' }]);
+        }
+
+        return res.redirect("/admin/banners");
+
+    } catch (error) {
+        console.error(`Lỗi khi di chuyển Banner ID ${req.params.id} xuống:`, error);
+        req.flash('errors', [{ msg: `Lỗi hệ thống khi di chuyển: ${error.message}` }]);
+        return res.redirect("/admin/banners");
+    }
+}

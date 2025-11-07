@@ -12,43 +12,36 @@
                     </svg>
                 </a>
             </li>
-            <li class="active">Quản lý Banner / Slider</li>
+            <li class="active">Quản lý quảng cáo</li>
         </ol>
     </div>
 
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">Danh sách Banner / Slider</h1>
+            <h1 class="page-header">Danh sách quảng cáo</h1>
         </div>
     </div>
 
     <div class="panel panel-default">
         <div class="pt-3 text-left ms-4">
             <a href="/admin/banners/create" class="btn btn-success">
-                <i class="glyphicon glyphicon-plus"></i> Thêm Banner / Slider
+                <i class="glyphicon glyphicon-plus"></i> Thêm quảng cáo
             </a>
         </div>
-
-        <!-- Tabs -->
-        <ul class="nav nav-tabs mt-3 border ms-4 me-4">
-            <li class="<%= type == '' ?  'active' : '' %>"><a data-toggle="tab" href="/admin/banners">Tất cả</a></li>
-            <li class="<%= type == 'banner' ?  'active' : '' %>"><a data-toggle="tab" href="/admin/banners?type=banner">Banner</a></li>
-            <li class="<%= type == 'slider' ?  'active' : '' %>"><a data-toggle="tab" href="/admin/banners?type=slider">Slider</a></li>
-        </ul>
 
         <div class="panel-body tab-content">
             <!-- Tất cả -->
             <div id="all" class="tab-pane fade in active">
                 <% if (ads.length===0) { %>
-                    <p class="text-center mt-3">Chưa có banner hay slider nào!</p>
+                    <p class="text-center mt-3">Chưa có quảng cáo nào!</p>
                     <% } else { %>
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th class="text-center">ID</th>
                                     <th class="text-center">Ảnh</th>
-                                    <th class="text-center">Loại</th>
                                     <th class="text-center">Link</th>
+                                    <th class="text-center">Vị trí</th>
                                     <th class="text-center">Trạng thái</th>
                                     <th class="text-center">Hành động</th>
                                 </tr>
@@ -60,22 +53,40 @@
                                             <%= index + 1 %>
                                         </td>
                                         <td class="text-center">
-                                            <img src="../upload/<%= ad.thumbnail_ads %>"
+                                            <img src="/uploads/<%= ad.image %>"
                                                 style="max-width:200px; max-height:100px;">
-                                        </td>
-                                        <td class="text-center">
-                                            <%= ad.type==='banner' ? "Banner" : "Slider" %>
                                         </td>
                                         <td><a href="<%= ad.link %>" target="_blank">
                                                 <%= ad.link %>
                                             </a></td>
                                         <td class="text-center">
-                                            <span
-                                                class="label <%= ad.status === 'active' ? 'label-success' : 'label-danger' %>">
-                                                <%= ad.status==='active' ? 'Hiển thị' : 'Ẩn' %>
-                                            </span>
+                                            <%= ad.position%>
                                         </td>
                                         <td class="text-center">
+                                            <span
+                                                class="label <%= ad.publish ? 'label-success' : 'label-danger' %>">
+                                                <%= ad.publish ? 'Hiển thị' : 'Ẩn' %>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <% if (index > 0 || page > 1) { %>
+                                                <a href="/admin/banners/moveup/<%= ad._id %>" class="btn btn-info btn-sm">
+                                                    <i class="glyphicon glyphicon-arrow-up"></i>
+                                                </a>
+                                            <% } else { %>
+                                                <a href="#" class="btn btn-info btn-sm disabled" style="opacity: 0.5; cursor: default;">
+                                                    <i class="glyphicon glyphicon-arrow-up"></i>
+                                                </a>
+                                            <% } %>
+                                            <% if (index < ads.length - 1 || page < totalPages) { %>
+                                                <a href="/admin/banners/movedown/<%= ad._id %>" class="btn btn-info btn-sm">
+                                                    <i class="glyphicon glyphicon-arrow-down"></i>
+                                                </a>
+                                            <% } else { %>
+                                                <a href="#" class="btn btn-info btn-sm disabled" style="opacity: 0.5; cursor: default;">
+                                                    <i class="glyphicon glyphicon-arrow-down"></i>
+                                                </a>
+                                            <% } %>
                                             <a href="/admin/banners/edit/<%= ad._id %>"
                                                 class="btn btn-warning btn-sm">
                                                 <i class="glyphicon glyphicon-pencil"></i>

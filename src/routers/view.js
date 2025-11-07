@@ -49,4 +49,10 @@ router.post(
     BannerController.update
 );
 router.get("/admin/banners/delete/:id", BannerController.destroy);
+router.get("/admin/banners/moveup/:id", BannerController.moveUp);     
+router.get("/admin/banners/movedown/:id", BannerController.moveDown);
+
+
+
+
 module.exports = router;
