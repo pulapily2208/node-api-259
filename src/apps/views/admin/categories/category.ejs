@@ -1,6 +1,6 @@
-<%-include("../../layout/head")%>
-    <%-include("../../layout/header")%>
-        <%-include("../../layout/sidebar")%>   
+<%-include("../layout/head")%>
+    <%-include("../layout/header")%>
+        <%-include("../layout/sidebar")%>   
         
     <div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">           
         <div class="row">
@@ -13,9 +13,12 @@
             <div class="col-lg-12">
                 <h1 class="page-header">Quản lý danh mục</h1>
             </div>
-        </div><% if (typeof success !== 'undefined' && success.length > 0) { %>
+        </div>
+        
+        <% if (typeof success !== 'undefined' && success.length > 0) { %>
             <div class="alert alert-success"><%= success %></div>
         <% } %>
+        
         <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
             <div class="alert alert-danger">
                 <ul>
@@ -25,6 +28,7 @@
                 </ul>
             </div>
         <% } %>
+        
         <div id="toolbar" class="btn-group">
             <a href="/admin/categories/create" class="btn btn-success">
                 <i class="glyphicon glyphicon-plus"></i> Thêm danh mục
@@ -49,8 +53,8 @@
                                 <% let i = 1 + (page - 1) * 10 %> 
                                 <% for(let category of categories) { %>
                                     <tr>
-                                        <td ><%= i++ %></td>
-                                        <td ><%= category.name %></td>
+                                        <td><%= i++ %></td>
+                                        <td><%= category.name %></td>
                                         <td class="form-group">
                                             <a href="/admin/categories/edit/<%= category._id %>" class="btn btn-primary"><i class="glyphicon glyphicon-pencil"></i></a>
                                             <a href="/admin/categories/delete/<%= category._id %>" class="btn btn-danger" onclick="return confirm('Bạn có chắc muốn xóa danh mục <%= category.name %> này không?');"><i class="glyphicon glyphicon-remove"></i></a>
@@ -85,7 +89,8 @@
                     </div>
                 </div>
             </div>
-        </div></div>  <script src="/js/jquery-1.11.1.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/bootstrap-table.js"></script>   
-<%-include("../../layout/footer")%>
+        </div>
+    </div>  <script src="/static/admin/js/jquery-1.11.1.min.js"></script>
+    <script src="/static/admin/js/bootstrap.min.js"></script>
+    <script src="/static/admin/js/bootstrap-table.js"></script>   
+<%-include("../layout/footer")%>

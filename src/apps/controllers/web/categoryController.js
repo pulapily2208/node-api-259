@@ -1,4 +1,5 @@
 const CategoryModel = require("../../models/category");
+const ProductModel = require("../../models/product");
 const { body, validationResult } = require("express-validator"); 
 const paginate = require("../../../libs/paginate");
 // 1. Hiển thị danh sách Category 
@@ -101,7 +102,7 @@ exports.edit = async (req, res) => {
     }
 };
 
-// BỔ SUNG: Middleware Validation Rules cho Update Category
+// Middleware Validation Rules cho Update Category
 exports.updateRules = [
     body("name")
         .notEmpty().withMessage("Tên danh mục là bắt buộc")
@@ -149,32 +150,40 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
-        // 1. Kiểm tra xem danh mục có tồn tại không
+
+        // 1. Kiểm tra danh mục có tồn tại không
         const category = await CategoryModel.findById(id);
         if (!category) {
             req.flash('errors', [{ msg: 'Danh mục không tồn tại để xóa.' }]);
             return res.redirect("/admin/categories");
         }
-        // 2. Kiểm tra các sản phẩm đang sử dụng danh mục này
-        // Đây là bước quan trọng để tránh lỗi tham chiếu.
-        const productCount = await ProductModel.countDocuments({ category_id: id });
         
+        // 2. Kiểm tra các sản phẩm đang sử dụng danh mục này
+        const productCount = await ProductModel.countDocuments({ category_id: id });
+
         if (productCount > 0) {
-            // Nếu có sản phẩm, không cho phép xóa
-            req.flash('errors', [{ msg: `Không thể xóa danh mục "${category.name}" vì có ${productCount} sản phẩm đang sử dụng.` }]);
+            // THỰC HIỆN XÓA PHÂN TẦNG:
+            // a. Xóa tất cả các sản phẩm thuộc danh mục này
+            await ProductModel.deleteMany({ category_id: id });
+            
+            // b. Xóa danh mục
+            await CategoryModel.deleteOne({ _id: id });
+
+            // c. Thông báo thành công chi tiết
+            req.flash('success', `Đã xóa danh mục "${category.name}" và ${productCount} sản phẩm liên quan thành công!`); 
+            return res.redirect("/admin/categories");
+            
+        } else {
+            // Trường hợp không có sản phẩm nào, chỉ xóa danh mục
+            await CategoryModel.deleteOne({ _id: id });
+            req.flash('success', `Xóa danh mục "${category.name}" thành công!`); 
             return res.redirect("/admin/categories");
         }
 
-        // 3. Tiến hành xóa khỏi Database
-        await CategoryModel.deleteOne({ _id: id });
-        
-        // 4. Thông báo thành công và chuyển hướng về trang danh sách
-        req.flash('success', `Xóa danh mục "${category.name}" thành công!`); 
-        return res.redirect("/admin/categories");
-
     } catch (error) {
         console.error(`Lỗi khi xóa Category ID ${req.params.id}:`, error);
-        req.flash('errors', [{ msg: 'Lỗi server khi xóa danh mục.' }]);
+        // Thông báo lỗi nếu có vấn đề nghiêm trọng khi thao tác với DB
+        req.flash('errors', [{ msg: 'Lỗi trong quá trình xử lý xóa danh mục hoặc sản phẩm liên quan.' }]);
         return res.redirect("/admin/categories");
     }
 };
