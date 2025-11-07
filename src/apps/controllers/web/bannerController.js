@@ -92,7 +92,7 @@ exports.store = async (req, res) => {
 
     try {
         let ads = {
-            image: `/ads/${file.filename}`, 
+            image: file.filename, 
             url: url || '#', 
             position: Number(position) || 0,
             target: target === 'on', 
@@ -173,7 +173,7 @@ exports.update = async (req, res) => {
         };
 
         if(file) {
-            updateData.image = `/ads/${file.filename}`;
+            updateData.image = file.filename;
             
             if (!fs.existsSync(ADS_UPLOAD_DIR)) {
                 fs.mkdirSync(ADS_UPLOAD_DIR, { recursive: true });
