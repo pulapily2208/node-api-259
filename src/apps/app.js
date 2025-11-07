@@ -2,21 +2,29 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const config = require("config");
-const path = require("path");
+const path = require("path"); 
+const session = require('express-session');
+const flash = require('connect-flash');
 
 const app = express();
 
-// Cấu hình EJS View Engine
+app.use(express.static(path.join(__dirname, "../../public"))); 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Router cho Web Views (sẽ chạy ở '/')
-app.use("/", require("../routers/view")); 
+app.use(session({
+    secret: 'YOUR_SESSION_SECRET', 
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60000 } 
+}));
 
-// Router cho API
+app.use(flash());
+
+app.use("/", require("../routers/view")); 
 app.use(config.get("app.prefixApiVersion"), require("../routers/web"));
 
 module.exports = app;
