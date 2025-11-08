@@ -1,5 +1,5 @@
 const TokenModel = require("../apps/models/token");
-const addTokenBlackList = require ("./redis.token");
+const  {addTokenBlackList} = require ("./redis.token");
 
 exports.storeCustomerToken = async (customerId, accessToken, refreshToken) => {
     const token = await TokenModel.findOne({customerId});
