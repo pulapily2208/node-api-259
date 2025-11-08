@@ -5,6 +5,7 @@ const router = express.Router();
 const CategoryController = require("../apps/controllers/apis/category");
 const ProductController = require("../apps/controllers/apis/product");
 const OrderController = require("../apps/controllers/apis/order");
+const AdminOrderController = require("../apps/controllers/apis/adminOrder");
 const CommentController = require("../apps/controllers/apis/comment");
 const CustomerAuthController = require("../apps/controllers/apis/customerAuth");
 
@@ -20,84 +21,88 @@ const {
   loginValidator,
 } = require("../apps/middlewares/authValidator");
 const {
-    createCategoryRules,
-    updateCategoryRules,
-    createCategoryValidator,
+  createCategoryRules,
+  updateCategoryRules,
+  createCategoryValidator,
 } = require("../apps/middlewares/categoryValidator");
 
-// --- Import Validator cho Product ---
 const {
-    createProductRules,
-    updateProductRules,
-    findOneOrRemoveProductRules,
-    productValidationHandler,
+  createProductRules,
+  updateProductRules,
+  findOneOrRemoveProductRules,
+  productValidationHandler,
 } = require("../apps/middlewares/productValidator");
 
-// --- Import Validator cho Comment ---
 const {
-    findByProductIdRules,
-    createCommentRules,
-    removeCommentRules,
-    updateCommentStatusRules,
-    commentValidationHandler,
+  findByProductIdRules,
+  createCommentRules,
+  removeCommentRules,
+  updateCommentStatusRules,
+  commentValidationHandler,
 } = require("../apps/middlewares/commentValidator");
 
 const {
   verifyAccessToken,
   verifyRefreshToken,
 } = require("../apps/middlewares/customerAuth");
-const { 
-    uploadProduct, 
-    uploadLogo, 
-    uploadAd 
+const {
+  uploadProduct,
+  uploadLogo,
+  uploadAd,
 } = require("../apps/middlewares/upload");
 
 const { param } = require("express-validator");
 const findOneOrRemoveCategoryRules = [
-    param("id").isMongoId().withMessage("Invalid Category ID format"),
+  param("id").isMongoId().withMessage("Invalid Category ID format"),
 ];
 
-
-// =============================================================
 // CUSTOMER AUTH
-// =============================================================
 router.post(
   "/auth/customers/register",
+
   registerValidator,
+
   CustomerAuthController.register
 );
+
 router.post(
   "/auth/customers/login",
   loginRules,
   loginValidator,
   CustomerAuthController.login
 );
-router.post("/auth/customers/logout", verifyAccessToken, CustomerAuthController.logout);
+
+router.post(
+  "/auth/customers/logout",
+  verifyAccessToken,
+  CustomerAuthController.logout
+);
+
 router.post(
   "/auth/customers/refresh",
   verifyRefreshToken,
   CustomerAuthController.resfreshToken
 );
+
 router.get(
   "/auth/customers/me",
   verifyAccessToken,
   CustomerAuthController.getMe
 );
 
-// =============================================================
 // CATEGORY CRUD
-// =============================================================
 router.get("/categories", CategoryController.findAll);
 
 router.get(
-  "/categories/:id", 
-  findOneOrRemoveCategoryRules, 
-  createCategoryValidator, 
+  "/categories/:id",
+  findOneOrRemoveCategoryRules,
+  createCategoryValidator,
   CategoryController.findOne
 );
 
 router.post(
   "/categories",
+  verifyAccessToken,
   createCategoryRules,
   createCategoryValidator,
   CategoryController.create
@@ -105,88 +110,88 @@ router.post(
 
 router.patch(
   "/categories/:id",
+  verifyAccessToken,
   updateCategoryRules,
   createCategoryValidator,
   CategoryController.update
 );
 
 router.delete(
-  "/categories/:id", 
+  "/categories/:id",
+  verifyAccessToken,
   findOneOrRemoveCategoryRules,
-  createCategoryValidator, 
+  createCategoryValidator,
   CategoryController.remove
 );
 
-// =============================================================
 // PRODUCT CRUD
-// =============================================================
 router.get("/products", ProductController.findAll);
 
 router.post(
-  "/products", 
-  uploadProduct.single("image"), 
-  createProductRules, 
+  "/products",
+  verifyAccessToken,
+  uploadProduct.single("image"),
+  createProductRules,
   productValidationHandler,
   ProductController.create
-); 
+);
 
 router.get(
-  "/products/:id", 
+  "/products/:id",
   findOneOrRemoveProductRules,
   productValidationHandler,
   ProductController.findOne
 );
 
 router.patch(
-  "/products/:id", 
-  uploadProduct.single("image"), 
-  updateProductRules, 
+  "/products/:id",
+  verifyAccessToken,
+  uploadProduct.single("image"),
+  updateProductRules,
   productValidationHandler,
   ProductController.update
-); 
+);
 
-// DELETE Remove, Validate ID
 router.delete(
-  "/products/:id", 
+  "/products/:id",
+  verifyAccessToken,
   findOneOrRemoveProductRules,
   productValidationHandler,
   ProductController.remove
 );
 
-// =============================================================
 // COMMENT API
-// =============================================================
 router.get(
-  "/products/:id/comments", 
+  "/products/:id/comments",
   findByProductIdRules,
-  commentValidationHandler, 
+  commentValidationHandler,
   CommentController.findByProductId
 );
 
 router.post(
-  "/products/:id/comments", 
-  createCommentRules, 
+  "/products/:id/comments",
+  createCommentRules,
   commentValidationHandler,
   CommentController.create
 );
 
 router.patch(
-  "/comments/:id/status", 
+  "/comments/:id/status",
+  verifyAccessToken,
   updateCommentStatusRules,
   commentValidationHandler,
   CommentController.updateStatus
 );
 
 router.delete(
-  "/comments/:id", 
-  removeCommentRules, 
+  "/comments/:id",
+  verifyAccessToken,
+  removeCommentRules,
   commentValidationHandler,
   CommentController.remove
 );
 
-// =============================================================
 // ORDER API
-// =============================================================
 router.post(
   "/customers/orders",
   verifyCustomer,
@@ -194,8 +199,30 @@ router.post(
   createOrderValidator,
   OrderController.order
 );
-router.get("/customers/orders", OrderController.findByCustomerId);
-router.get("/customers/orders/:id", OrderController.findOne);
-router.patch("/customers/orders/:id/cancel", OrderController.cancel);
+router.get(
+  "/customers/orders",
+  verifyAccessToken,
+  OrderController.findByCustomerId
+);
+router.get("/customers/orders/:id", verifyAccessToken, OrderController.findOne);
+router.patch(
+  "/customers/orders/:id/cancel",
+  verifyAccessToken,
+  OrderController.cancel
+);
+
+// Admin Order Routes
+router.get("/orders/admin", verifyAccessToken, AdminOrderController.findAll);
+router.patch(
+  "/orders/admin/:id",
+  verifyAccessToken,
+  AdminOrderController.update
+);
+router.delete(
+  "/orders/admin/:id",
+  verifyAccessToken,
+  AdminOrderController.remove
+);
+
 
 module.exports = router;
