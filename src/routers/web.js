@@ -101,6 +101,11 @@ router.get(
 
 // USER AUTH ROUTES (Admin/Member)
 router.post(
+  "/auth/users/register", 
+  userValidationCheck,
+  UserAuthController.register
+);
+router.post(
   "/auth/users/login",
   loginRules,
   loginValidator,

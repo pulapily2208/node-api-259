@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản thành công</title>
+</head>
+<body>
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+        <h2 style="color: #4CAF50; text-align: center;">🎉 Đăng ký thành công!</h2>
+        <p>Xin chào **<%= payload.fullName %>**</p>
+        <p>Chúc mừng bạn đã đăng ký tài khoản thành công tại **Vietpro Shop**!</p>
+        <p>Thông tin tài khoản của bạn:</p>
+        <ul style="list-style: disc; padding-left: 20px;">
+            <li style="margin-bottom: 5px;"><strong>Họ và tên:</strong> <%= payload.fullName %></li>
+            <li style="margin-bottom: 5px;"><strong>Email:</strong> <%= payload.email %></li>
+            <% if (payload.phone) { %>
+            <li style="margin-bottom: 5px;"><strong>Số điện thoại:</strong> <%= payload.phone %></li>
+            <% } %>
+            <li style="margin-bottom: 5px;"><strong>Loại tài khoản:</strong> <%= payload.accountType %></li>
+        </ul>
+        <p>Bạn có thể đăng nhập vào hệ thống bằng địa chỉ email và mật khẩu đã đăng ký.</p>
+        <p style="margin-top: 20px;">Trân trọng,<br>
+        Đội ngũ Vietpro Shop</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">Đây là email tự động, vui lòng không trả lời.</p>
+    </div>
+</body>
+</html>

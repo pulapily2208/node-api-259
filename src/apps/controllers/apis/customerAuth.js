@@ -5,6 +5,9 @@ const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
 const { deleteCustomerToken } = require ("../../../libs/token.service");
 const { storeCustomerToken } = require ("../../../libs/token.service");
+
+const sendMail = require("../../../emails/mail"); 
+const config = require("config");
 exports.register = async (req, res) => {
   try {
     // Validate form
@@ -40,6 +43,15 @@ exports.register = async (req, res) => {
       phone,
       address,
     });
+
+    const mailTemplatePath = `${config.get("mail.mailTemplate")}/mail-register.ejs`;
+    await sendMail(mailTemplatePath, {
+        fullName: newCustomer.fullName,
+        email: newCustomer.email,
+        phone: newCustomer.phone,
+        subject: "Xác nhận đăng ký tài khoản khách hàng thành công - Vietpro Shop",
+        accountType: "Khách hàng",
+    }).catch(console.error);
     return res.status(201).json({
       status: "success",
       message: "Registered customer successfully",

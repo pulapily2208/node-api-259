@@ -4,6 +4,62 @@ const { storeUserToken, deleteUserToken } = require("../../../libs/token.service
 const bcrypt = require("bcrypt");
 const config = require("config");
 const { addTokenBlackList } = require("../../../libs/redis.token");
+const { validationResult } = require("express-validator");
+const sendMail = require("../../../emails/mail");
+
+// POST /auth/users/register
+exports.register = async (req, res) => {
+    try {
+        // Validate form
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                status: "error",
+                message: "Validator user",
+                errors: errors.array(),
+            });
+        }
+        
+        const { fullName, email, password } = req.body; 
+
+        // Validate unique email
+        const emailExists = await UserModel.findOne({ email });
+        if (emailExists)
+            return res.status(400).json({
+                status: "error",
+                message: "Email already exists",
+            });
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await UserModel.create({
+            fullName,
+            email,
+            password: hashedPassword,
+        });
+
+        const mailTemplatePath = `${config.get("mail.mailTemplate")}/mail-register.ejs`;
+        await sendMail(mailTemplatePath, {
+            fullName: newUser.fullName,
+            email: newUser.email,
+            subject: "Xác nhận đăng ký tài khoản người dùng thành công - Vietpro Shop",
+            accountType: "Người dùng (Admin/Nhân viên)", 
+            phone: null, 
+        }).catch(console.error); 
+
+        return res.status(201).json({
+            status: "success",
+            message: "Registered user successfully",
+            data: newUser,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: "error",
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
 
 
 // POST /auth/users/login

@@ -1,7 +1,5 @@
-// src/apps/middlewares/userAuth.js
-
-const { verify } = require("../../libs/jwt"); // Cần require lại hàm verify từ libs/jwt
-const config = require("config"); // Cần require lại config
+const { verify } = require("../../libs/jwt"); 
+const config = require("config"); 
 
 /**
  * Middleware: Xác thực Access Token cho User/Admin
