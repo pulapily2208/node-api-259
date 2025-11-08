@@ -2,30 +2,19 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const config = require("config");
-const path = require("path"); 
-const session = require('express-session');
-const flash = require('connect-flash');
+const redisClient = require("../libs/redis.token");
+const cors = require("cors");
 
 const app = express();
-app.use("/static/admin", express.static(path.join(__dirname, "../public/admin"))); 
-app.use("/uploads", express.static(path.join(__dirname, "../public/upload")));
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(cookieParser());
-
-app.use(session({
-    secret: 'YOUR_SESSION_SECRET', 
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 60000 } 
+// Cấu hình CORS
+// Origin: true cho phép mọi nguồn, bạn nên thay bằng địa chỉ Frontend cụ thể khi triển khai thật.
+app.use(cors({
+    origin: true, 
+    credentials: true // Bắt buộc phải có để cho phép gửi/nhận cookies (refreshToken)
 }));
 
-app.use(flash());
-
-app.use("/", require("../routers/view")); 
+app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(config.get("app.prefixApiVersion"), require("../routers/web"));
-
 module.exports = app;

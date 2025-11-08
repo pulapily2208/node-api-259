@@ -1,7 +1,14 @@
 const ProductModel = require("../../models/product");
 const paginate = require("../../../libs/paginate");
+const path = require("path");
+const fs = require("fs");
+
+const PRODUCT_SUBFOLDER = 'products';
+const PRODUCT_UPLOAD_DIR = path.join(__dirname, '..', '..', 'public', 'upload', PRODUCT_SUBFOLDER);
+
 
 exports.findAll = async (req, res) => {
+
   try {
     const query = {};
     if (req.query.is_featured) query.is_featured = req.query.is_featured;
@@ -33,14 +40,14 @@ exports.findAll = async (req, res) => {
 exports.findOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await ProductModel.findById(id).populate('category_id'); // Đã thêm populate category_id
+    const product = await ProductModel.findById(id).populate('category_id');
 
     if (!product) {
-        return res.status(404).json({
-          status: "error",
-          message: "Product not found",
-        });
-      }
+      return res.status(404).json({
+        status: "error",
+        message: "Product not found",
+      });
+    }
 
     return res.status(200).json({
       status: "success",
@@ -56,42 +63,103 @@ exports.findOne = async (req, res) => {
   }
 };
 
-
+// API thêm mới sản phẩm có upload ảnh
 exports.create = async (req, res) => {
-    try {
-        const product = await ProductModel.create(req.body);
-        const newProduct = await ProductModel.findById(product._id).populate('category_id');
-
-        return res.status(201).json({
-            status: "success",
-            message: "Product created successfully",
-            data: newProduct,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            status: "error",
-            message: "Internal server error or validation failed",
-            error: error.message,
-        });
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        status: "error",
+        message: "Product image is required",
+      });
     }
+
+    // Đường dẫn công khai lưu trong DB: /upload/products/tên_file.jpg
+    const imagePath = `/upload/${PRODUCT_SUBFOLDER}/${req.file.filename}`;
+    
+    const productData = {
+      ...req.body,
+      image: imagePath,
+      is_stock: req.body.is_stock === 'true', 
+      is_featured: req.body.is_featured === 'true', 
+    };
+
+    const product = await ProductModel.create(productData);
+    const newProduct = await ProductModel.findById(product._id).populate('category_id');
+
+    return res.status(201).json({
+      status: "success",
+      message: "Product created successfully",
+      data: newProduct,
+    });
+  } catch (error) {
+    // Xóa file nếu có lỗi xảy ra sau khi upload nhưng trước khi lưu DB
+    if (req.file) {
+      const filePath = path.join(PRODUCT_UPLOAD_DIR, req.file.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+          if (err) console.error("Failed to delete file after DB error:", err);
+        });
+      }
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error or validation failed",
+      error: error.message,
+    });
+  }
 };
 
+// API sửa thông tin sản phẩm có tính năng sửa ảnh mô tả
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
-    const updatedProduct = await ProductModel.findByIdAndUpdate(
-      id,
-      data,
-      { new: true, runValidators: true } 
-    ).populate('category_id'); 
+    let updateData = { ...req.body };
 
-    if (!updatedProduct) {
+    const product = await ProductModel.findById(id);
+    if (!product) {
+      // Nếu không tìm thấy sản phẩm, xóa file mới nếu đã upload
+      if (req.file) {
+        const filePath = path.join(PRODUCT_UPLOAD_DIR, req.file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
       return res.status(404).json({
         status: "error",
         message: "Product not found",
       });
     }
+    
+    // Xử lý upload ảnh mới (nếu có)
+    if (req.file) {
+      // 1. Xóa ảnh cũ
+      if (product.image) {
+        const oldImageFilename = path.basename(product.image); 
+        const oldImagePath = path.join(PRODUCT_UPLOAD_DIR, oldImageFilename);
+        
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlink(oldImagePath, (err) => {
+            if (err) console.error("Failed to delete old image:", err);
+          });
+        }
+      }
+
+      // 2. Cập nhật đường dẫn ảnh mới
+      updateData.image = `/upload/${PRODUCT_SUBFOLDER}/${req.file.filename}`;
+    }
+    
+    if (updateData.is_stock !== undefined) {
+         updateData.is_stock = updateData.is_stock === 'true';
+    }
+    if (updateData.is_featured !== undefined) {
+         updateData.is_featured = updateData.is_featured === 'true';
+    }
+
+    const updatedProduct = await ProductModel.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true } 
+    ).populate('category_id'); 
 
     return res.status(200).json({
       status: "success",
@@ -99,6 +167,13 @@ exports.update = async (req, res) => {
       data: updatedProduct,
     });
   } catch (error) {
+    // Xóa file mới nếu có lỗi xảy ra sau khi upload nhưng trước khi lưu DB
+    if (req.file) {
+      const filePath = path.join(PRODUCT_UPLOAD_DIR, req.file.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
     return res.status(500).json({
       status: "error",
       message: "Internal server error or validation failed",
@@ -117,6 +192,18 @@ exports.remove = async (req, res) => {
         status: "error",
         message: "Product not found",
       });
+    }
+    
+    // Thêm logic xóa tệp ảnh vật lý
+    if (deletedProduct.image) {
+        const imageFilename = path.basename(deletedProduct.image);
+        const imagePath = path.join(PRODUCT_UPLOAD_DIR, imageFilename);
+
+        if (fs.existsSync(imagePath)) {
+            fs.unlink(imagePath, (err) => {
+                if (err) console.error("Failed to delete product image:", err);
+            });
+        }
     }
 
     return res.status(200).json({

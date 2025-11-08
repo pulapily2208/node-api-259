@@ -28,7 +28,11 @@ const {
   verifyAccessToken,
   verifyRefreshToken,
 } = require("../apps/middlewares/customerAuth");
-
+const { 
+    uploadProduct, 
+    uploadLogo, 
+    uploadAd 
+} = require("../apps/middlewares/upload");
 
 // customer
 router.post(
@@ -73,11 +77,11 @@ router.delete("/categories/:id", CategoryController.remove);
 
 // product
 router.get("/products", ProductController.findAll);
-router.post("/products", ProductController.create);
+router.post("/products", uploadProduct.single("image"), ProductController.create); 
 router.get("/products/:id/comments", CommentController.findByProductId);
 router.post("/products/:id/comments", CommentController.create);
 router.get("/products/:id", ProductController.findOne);
-router.patch("/products/:id", ProductController.update);
+router.patch("/products/:id", uploadProduct.single("image"), ProductController.update); 
 router.delete("/products/:id", ProductController.remove);
 
 
