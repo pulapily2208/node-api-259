@@ -17,6 +17,11 @@ const commentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["pending", "approved"],
+      default: "pending",
+    }
   },
   { timestamps: true }
 );

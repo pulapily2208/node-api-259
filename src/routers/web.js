@@ -24,6 +24,24 @@ const {
     updateCategoryRules,
     createCategoryValidator,
 } = require("../apps/middlewares/categoryValidator");
+
+// --- Import Validator cho Product ---
+const {
+    createProductRules,
+    updateProductRules,
+    findOneOrRemoveProductRules,
+    productValidationHandler,
+} = require("../apps/middlewares/productValidator");
+
+// --- Import Validator cho Comment ---
+const {
+    findByProductIdRules,
+    createCommentRules,
+    removeCommentRules,
+    updateCommentStatusRules,
+    commentValidationHandler,
+} = require("../apps/middlewares/commentValidator");
+
 const {
   verifyAccessToken,
   verifyRefreshToken,
@@ -34,7 +52,15 @@ const {
     uploadAd 
 } = require("../apps/middlewares/upload");
 
-// customer
+const { param } = require("express-validator");
+const findOneOrRemoveCategoryRules = [
+    param("id").isMongoId().withMessage("Invalid Category ID format"),
+];
+
+
+// =============================================================
+// CUSTOMER AUTH
+// =============================================================
 router.post(
   "/auth/customers/register",
   registerValidator,
@@ -58,34 +84,109 @@ router.get(
   CustomerAuthController.getMe
 );
 
-// category
+// =============================================================
+// CATEGORY CRUD
+// =============================================================
 router.get("/categories", CategoryController.findAll);
-router.get("/categories/:id", CategoryController.findOne);
+
+router.get(
+  "/categories/:id", 
+  findOneOrRemoveCategoryRules, 
+  createCategoryValidator, 
+  CategoryController.findOne
+);
+
 router.post(
-    "/categories",
-    createCategoryRules,
-    createCategoryValidator,
-    CategoryController.create
+  "/categories",
+  createCategoryRules,
+  createCategoryValidator,
+  CategoryController.create
 );
+
 router.patch(
-    "/categories/:id",
-    updateCategoryRules,
-    createCategoryValidator,
-    CategoryController.update
+  "/categories/:id",
+  updateCategoryRules,
+  createCategoryValidator,
+  CategoryController.update
 );
-router.delete("/categories/:id", CategoryController.remove);
 
-// product
+router.delete(
+  "/categories/:id", 
+  findOneOrRemoveCategoryRules,
+  createCategoryValidator, 
+  CategoryController.remove
+);
+
+// =============================================================
+// PRODUCT CRUD
+// =============================================================
 router.get("/products", ProductController.findAll);
-router.post("/products", uploadProduct.single("image"), ProductController.create); 
-router.get("/products/:id/comments", CommentController.findByProductId);
-router.post("/products/:id/comments", CommentController.create);
-router.get("/products/:id", ProductController.findOne);
-router.patch("/products/:id", uploadProduct.single("image"), ProductController.update); 
-router.delete("/products/:id", ProductController.remove);
 
+router.post(
+  "/products", 
+  uploadProduct.single("image"), 
+  createProductRules, 
+  productValidationHandler,
+  ProductController.create
+); 
 
+router.get(
+  "/products/:id", 
+  findOneOrRemoveProductRules,
+  productValidationHandler,
+  ProductController.findOne
+);
 
+router.patch(
+  "/products/:id", 
+  uploadProduct.single("image"), 
+  updateProductRules, 
+  productValidationHandler,
+  ProductController.update
+); 
+
+// DELETE Remove, Validate ID
+router.delete(
+  "/products/:id", 
+  findOneOrRemoveProductRules,
+  productValidationHandler,
+  ProductController.remove
+);
+
+// =============================================================
+// COMMENT API
+// =============================================================
+router.get(
+  "/products/:id/comments", 
+  findByProductIdRules,
+  commentValidationHandler, 
+  CommentController.findByProductId
+);
+
+router.post(
+  "/products/:id/comments", 
+  createCommentRules, 
+  commentValidationHandler,
+  CommentController.create
+);
+
+router.patch(
+  "/comments/:id/status", 
+  updateCommentStatusRules,
+  commentValidationHandler,
+  CommentController.updateStatus
+);
+
+router.delete(
+  "/comments/:id", 
+  removeCommentRules, 
+  commentValidationHandler,
+  CommentController.remove
+);
+
+// =============================================================
+// ORDER API
+// =============================================================
 router.post(
   "/customers/orders",
   verifyCustomer,
