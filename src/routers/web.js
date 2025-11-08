@@ -22,7 +22,7 @@ const {
 const {
   verifyAccessToken: verifyUserAccessToken, // Alias cho User Access Token
   verifyRefreshToken: verifyUserRefreshToken, // Alias cho User Refresh Token
-} = require("../apps/middlewares/userAuth");
+} = require("../apps/controllers/apis/userAuth");
 const {
   createOrderRules,
   createOrderValidator,
