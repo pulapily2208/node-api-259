@@ -10,6 +10,7 @@ const CommentController = require("../apps/controllers/apis/comment");
 const CustomerAuthController = require("../apps/controllers/apis/customerAuth");
 const UserController = require("../apps/controllers/apis/user");
 const UserAuthController = require("../apps/controllers/apis/userAuth");
+const AdController = require("../apps/controllers/apis/ad");
 
 // Import Middleware
 const { registerValidator } = require("../apps/middlewares/customerValidator");
@@ -291,4 +292,45 @@ router.delete(
   authAdmin, 
   AdminOrderController.remove
 );
+
+// AD
+router.get("/banners", AdController.listBanners); 
+router.get("/sliders", AdController.listSliders);
+// --- BANNER ROUTES (Admin) ---
+router.get("/admin/banners", verifyUserAccessToken, authAdmin, AdController.adminListBanners);
+router.post(
+    "/admin/banners",
+    verifyUserAccessToken,
+    authAdmin,
+    uploadAd.single("image"), 
+    AdController.createBanner
+);
+router.get("/admin/banners/:id", verifyUserAccessToken, authAdmin, AdController.getBannerDetail);
+router.patch(
+    "/admin/banners/:id",
+    verifyUserAccessToken,
+    authAdmin,
+    uploadAd.single("image"), 
+    AdController.updateBanner
+);
+router.delete("/admin/banners/:id", verifyUserAccessToken, authAdmin, AdController.deleteBanner);
+
+// --- SLIDER ROUTES (Admin) ---
+router.get("/admin/sliders", verifyUserAccessToken, authAdmin, AdController.adminListSliders);
+router.post(
+    "/admin/sliders",
+    verifyUserAccessToken,
+    authAdmin,
+    uploadAd.single("image"), 
+    AdController.createSlider
+);
+router.get("/admin/sliders/:id", verifyUserAccessToken, authAdmin, AdController.getSliderDetail);
+router.patch(
+    "/admin/sliders/:id",
+    verifyUserAccessToken,
+    authAdmin,
+    uploadAd.single("image"), 
+    AdController.updateSlider
+);
+router.delete("/admin/sliders/:id", verifyUserAccessToken, authAdmin, AdController.deleteSlider);
 module.exports = router;
