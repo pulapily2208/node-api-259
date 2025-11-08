@@ -123,7 +123,7 @@ exports.logout = async (req, res) => {
     });
   }
 };
-exports.resfreshToken = async (req, res) => {
+exports.refreshToken = async (req, res) => {
   try {
     const { customer } = req;
     const accessToken = await jwt.generateAccessToken(customer);

@@ -90,7 +90,7 @@ router.post(
 router.post(
   "/auth/customers/refresh",
   verifyRefreshToken,
-  CustomerAuthController.resfreshToken
+  CustomerAuthController.refreshToken
 );
 
 router.get(
@@ -116,7 +116,7 @@ router.post(
 router.post(
   "/auth/users/refresh",
   verifyUserRefreshToken,
-  UserAuthController.resfreshToken
+  UserAuthController.refreshToken
 );
 
 router.get(
