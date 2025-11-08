@@ -61,7 +61,7 @@ exports.logout = async (req, res) => {
 };
 
 // POST /auth/users/refresh
-exports.resfreshToken = async (req, res) => {
+exports.refreshToken = async (req, res) => {
     try {
         const { user } = req; 
         const userModel = await UserModel.findById(user.id);
@@ -88,7 +88,15 @@ exports.resfreshToken = async (req, res) => {
 // GET /auth/users/me
 exports.getMe = async (req, res) => {
     try {
-        const { userModel } = req; 
+        const { user } = req; 
+        const userModel = await UserModel.findById(user.id).select('-password');
+        
+        if (!userModel) {
+            return res.status(404).json({
+                status: "error",
+                message: "User not found",
+            });
+        }
         
         return res.status(200).json({
             status: "success",

@@ -20,3 +20,13 @@ exports.verifyCustomer = async (req, res, next) => {
     return next();
   }
 };
+
+exports.authAdmin = (req, res, next) => {
+    if (req.customer && req.customer.role === "admin") {
+        return next();
+    }
+    return res.status(403).json({
+        status: "error",
+        message: "Access denied. Admin privileges required.",
+    });
+};

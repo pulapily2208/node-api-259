@@ -4,7 +4,7 @@ const paginate = require("../../../libs/paginate");
 /**
  * 1. API danh sách tất cả đơn hàng dành cho Admin
  */
-exports.findAll = async (req, res) => {
+const findAll = async (req, res) => {
   try {
     const query = {};
     const sort = { _id: -1 };
@@ -42,7 +42,7 @@ exports.findAll = async (req, res) => {
  * 2. API sửa trạng thái đơn hàng dành cho Admin
  * (confirmed, shipping, delivered, canceled)
  */
-exports.update = async (req, res) => {
+const update = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -87,7 +87,7 @@ exports.update = async (req, res) => {
 /**
  * 3. API xoá đơn hàng dành cho Admin
  */
-exports.remove = async (req, res) => {
+const remove = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -111,4 +111,10 @@ exports.remove = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+module.exports = {
+    findAll,
+    update,
+    remove,
 };

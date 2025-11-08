@@ -20,9 +20,68 @@ const {
   validationCheck: userValidationCheck, // Alias cho User Validator
 } = require("../apps/middlewares/userValidator"); 
 const {
-  verifyAccessToken: verifyUserAccessToken, // Alias cho User Access Token
-  verifyRefreshToken: verifyUserRefreshToken, // Alias cho User Refresh Token
-} = require("../apps/controllers/apis/userAuth");
+  verify
+} = require("../libs/jwt");
+const config = require("config");
+
+// Middleware xác thực cho User
+const verifyUserAccessToken = (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({
+        status: "error",
+        message: "Access token not found"
+      });
+    }
+
+    verify(token, config.get("app.jwtAccessKey"), (err, decoded) => {
+      if (err) {
+        return res.status(401).json({
+          status: "error",
+          message: "Invalid or expired token"
+        });
+      }
+      req.user = decoded;
+      next();
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+const verifyUserRefreshToken = (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({
+        status: "error",
+        message: "Refresh token not found"
+      });
+    }
+
+    verify(refreshToken, config.get("app.jwtRefreshKey"), (err, decoded) => {
+      if (err) {
+        return res.status(401).json({
+          status: "error",
+          message: "Invalid or expired refresh token"
+        });
+      }
+      req.user = decoded;
+      next();
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
 const {
   createOrderRules,
   createOrderValidator,
