@@ -8,10 +8,21 @@ const OrderController = require("../apps/controllers/apis/order");
 const AdminOrderController = require("../apps/controllers/apis/adminOrder");
 const CommentController = require("../apps/controllers/apis/comment");
 const CustomerAuthController = require("../apps/controllers/apis/customerAuth");
+const UserController = require("../apps/controllers/apis/user");
+const UserAuthController = require("../apps/controllers/apis/userAuth");
 
 // Import Middleware
 const { registerValidator } = require("../apps/middlewares/customerValidator");
 const { verifyCustomer } = require("../apps/middlewares/orderAuth");
+const {
+  createUserRules, 
+  updateUserRules, 
+  validationCheck: userValidationCheck, // Alias cho User Validator
+} = require("../apps/middlewares/userValidator"); 
+const {
+  verifyAccessToken: verifyUserAccessToken, // Alias cho User Access Token
+  verifyRefreshToken: verifyUserRefreshToken, // Alias cho User Refresh Token
+} = require("../apps/middlewares/userAuth");
 const {
   createOrderRules,
   createOrderValidator,
@@ -56,12 +67,10 @@ const findOneOrRemoveCategoryRules = [
   param("id").isMongoId().withMessage("Invalid Category ID format"),
 ];
 
-// CUSTOMER AUTH
+// CUSTOMER AUTH ROUTES
 router.post(
   "/auth/customers/register",
-
   registerValidator,
-
   CustomerAuthController.register
 );
 
@@ -89,6 +98,51 @@ router.get(
   verifyAccessToken,
   CustomerAuthController.getMe
 );
+
+// USER AUTH ROUTES (Admin/Member)
+router.post(
+  "/auth/users/login",
+  loginRules,
+  loginValidator,
+  UserAuthController.login
+);
+
+router.post(
+  "/auth/users/logout",
+  verifyUserAccessToken,
+  UserAuthController.logout
+);
+
+router.post(
+  "/auth/users/refresh",
+  verifyUserRefreshToken,
+  UserAuthController.resfreshToken
+);
+
+router.get(
+  "/auth/users/me",
+  verifyUserAccessToken,
+  UserAuthController.getMe
+);
+
+// USER MANAGEMENT ROUTES (Admin/Member CRUD)
+router.post(
+  "/users", 
+  verifyUserAccessToken, 
+  createUserRules, 
+  userValidationCheck, 
+  UserController.create
+);
+router.get("/users", verifyUserAccessToken, UserController.findAll); 
+router.get("/users/:id", verifyUserAccessToken, UserController.findOne); 
+router.patch(
+  "/users/:id", 
+  verifyUserAccessToken, 
+  updateUserRules, 
+  userValidationCheck, 
+  UserController.update
+);
+router.delete("/users/:id", verifyUserAccessToken, UserController.delete); 
 
 // CATEGORY CRUD
 router.get("/categories", CategoryController.findAll);
@@ -223,6 +277,5 @@ router.delete(
   verifyAccessToken,
   AdminOrderController.remove
 );
-
 
 module.exports = router;

@@ -18,3 +18,6 @@ exports.generateRefreshToken = async (payload) =>
     config.get("app.jwtRefreshKey"),
     { expiresIn: "1d" }
   );
+
+exports.sign = (payload, secret, options = {}) => jwt.sign(payload, secret, options);
+exports.verify = (token, secret) => jwt.verify(token, secret);

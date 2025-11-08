@@ -24,3 +24,24 @@ exports.deleteCustomerToken = async (customerId) => {
     // Delete Token from db
     await TokenModel.deleteOne({customerId});
 };
+
+exports.storeUserToken = async (userId, accessToken, refreshToken) => {
+    const token = await TokenModel.findOne({customerId: userId});
+    if (token) await exports.deleteUserToken(userId);
+    await TokenModel({
+        customerId: userId,
+        accessToken, 
+        refreshToken
+    }).save();
+};
+
+exports.deleteUserToken = async (userId) => {
+    const token = await TokenModel.findOne({customerId: userId});
+    if (!token) {
+        const error = new Error("No Token found this user");
+        error.statusCode = 404;
+        throw error;
+    }
+    await addTokenBlackList(userId);
+    await TokenModel.deleteOne({customerId: userId});
+};
