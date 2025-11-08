@@ -16,13 +16,17 @@ const AdController = require("../apps/controllers/apis/ad");
 const { registerValidator } = require("../apps/middlewares/customerValidator");
 const { verifyCustomer } = require("../apps/middlewares/orderAuth");
 const { authAdmin } = require("../apps/middlewares/orderAuth");
+const upload = require("../apps/middlewares/upload");
 const {
-  createUserRules, 
-  updateUserRules, 
-  validationCheck: userValidationCheck, 
-} = require("../apps/middlewares/userValidator"); 
+  createUserRules,
+  updateUserRules,
+  validationCheck: userValidationCheck,
+} = require("../apps/middlewares/userValidator");
 
-const { verifyUserAccessToken, verifyUserRefreshToken } = require("../apps/middlewares/userAuth");
+const {
+  verifyUserAccessToken,
+  verifyUserRefreshToken,
+} = require("../apps/middlewares/userAuth");
 
 const {
   createOrderRules,
@@ -57,13 +61,7 @@ const {
   verifyAccessToken,
   verifyRefreshToken,
 } = require("../apps/middlewares/customerAuth");
-const {
-  uploadProduct,
-  uploadLogo,
-  uploadAd,
-  uploadBanner,
-  uploadSlider
-} = require("../apps/middlewares/upload");
+// upload middlewares are available via `upload` (required above)
 
 const { param } = require("express-validator");
 const findOneOrRemoveCategoryRules = [
@@ -104,7 +102,7 @@ router.get(
 
 // USER AUTH ROUTES (Admin/Member)
 router.post(
-  "/auth/users/register", 
+  "/auth/users/register",
   userValidationCheck,
   UserAuthController.register
 );
@@ -127,30 +125,26 @@ router.post(
   UserAuthController.refreshToken
 );
 
-router.get(
-  "/auth/users/me",
-  verifyUserAccessToken,
-  UserAuthController.getMe
-);
+router.get("/auth/users/me", verifyUserAccessToken, UserAuthController.getMe);
 
 // USER MANAGEMENT ROUTES (Admin/Member CRUD)
 router.post(
-  "/users", 
-  verifyUserAccessToken, 
-  createUserRules, 
-  userValidationCheck, 
+  "/users",
+  verifyUserAccessToken,
+  createUserRules,
+  userValidationCheck,
   UserController.create
 );
-router.get("/users", verifyUserAccessToken, UserController.findAll); 
-router.get("/users/:id", verifyUserAccessToken, UserController.findOne); 
+router.get("/users", verifyUserAccessToken, UserController.findAll);
+router.get("/users/:id", verifyUserAccessToken, UserController.findOne);
 router.patch(
-  "/users/:id", 
-  verifyUserAccessToken, 
-  updateUserRules, 
-  userValidationCheck, 
+  "/users/:id",
+  verifyUserAccessToken,
+  updateUserRules,
+  userValidationCheck,
   UserController.update
 );
-router.delete("/users/:id", verifyUserAccessToken, UserController.delete); 
+router.delete("/users/:id", verifyUserAccessToken, UserController.delete);
 
 // CATEGORY CRUD
 router.get("/categories", CategoryController.findAll);
@@ -192,7 +186,7 @@ router.get("/products", ProductController.findAll);
 router.post(
   "/products",
   verifyAccessToken,
-  uploadProduct.single("image"),
+  upload.uploadProduct,
   createProductRules,
   productValidationHandler,
   ProductController.create
@@ -205,10 +199,10 @@ router.get(
   ProductController.findOne
 );
 
-router.patch(
+router.put(
   "/products/:id",
   verifyAccessToken,
-  uploadProduct.single("image"),
+  upload.uploadProduct,
   updateProductRules,
   productValidationHandler,
   ProductController.update
@@ -276,63 +270,93 @@ router.patch(
 // Admin Order Routes
 router.get(
   "/orders/admin",
-  verifyUserAccessToken, 
-  authAdmin, 
+  verifyUserAccessToken,
+  authAdmin,
   AdminOrderController.findAll
 );
 
 router.patch(
   "/orders/admin/:id",
   verifyUserAccessToken,
-  authAdmin, 
+  authAdmin,
   AdminOrderController.update
 );
 
 router.delete(
   "/orders/admin/:id",
   verifyUserAccessToken,
-  authAdmin, 
+  authAdmin,
   AdminOrderController.remove
 );
 
 // AD
-router.get("/banners", AdController.listBanners); 
+router.get("/banners", AdController.listBanners);
 router.get("/sliders", AdController.listSliders);
 // --- BANNER ROUTES (Admin) ---
-router.get("/admin/banners", verifyUserAccessToken, authAdmin, AdController.adminListBanners);
+router.get(
+  "/admin/banners",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.adminListBanners
+);
 router.post(
-    "/admin/banners",
-    verifyUserAccessToken,
-    authAdmin,
-    uploadBanner.single("image"), 
-    AdController.createBanner
+  "/admin/banners",
+  verifyUserAccessToken,
+  authAdmin,
+  upload.uploadBanner,
+  AdController.createBanner
 );
-router.get("/admin/banners/:id", verifyUserAccessToken, authAdmin, AdController.getBannerDetail);
+router.get(
+  "/admin/banners/:id",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.getBannerDetail
+);
 router.patch(
-    "/admin/banners/:id",
-    verifyUserAccessToken,
-    authAdmin,
-    uploadBanner.single("image"), 
-    AdController.updateBanner
+  "/admin/banners/:id",
+  verifyUserAccessToken,
+  authAdmin,
+  upload.uploadBanner,
+  AdController.updateBanner
 );
-router.delete("/admin/banners/:id", verifyUserAccessToken, authAdmin, AdController.deleteBanner);
+router.delete(
+  "/admin/banners/:id",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.deleteBanner
+);
 
 // --- SLIDER ROUTES (Admin) ---
-router.get("/admin/sliders", verifyUserAccessToken, authAdmin, AdController.adminListSliders);
+router.get(
+  "/admin/sliders",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.adminListSliders
+);
 router.post(
-    "/admin/sliders",
-    verifyUserAccessToken,
-    authAdmin,
-    uploadSlider.single("image"), 
-    AdController.createSlider
+  "/admin/sliders",
+  verifyUserAccessToken,
+  authAdmin,
+  upload.uploadSlider,
+  AdController.createSlider
 );
-router.get("/admin/sliders/:id", verifyUserAccessToken, authAdmin, AdController.getSliderDetail);
+router.get(
+  "/admin/sliders/:id",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.getSliderDetail
+);
 router.patch(
-    "/admin/sliders/:id",
-    verifyUserAccessToken,
-    authAdmin,
-    uploadSlider.single("image"), 
-    AdController.updateSlider
+  "/admin/sliders/:id",
+  verifyUserAccessToken,
+  authAdmin,
+  upload.uploadSlider,
+  AdController.updateSlider
 );
-router.delete("/admin/sliders/:id", verifyUserAccessToken, authAdmin, AdController.deleteSlider);
+router.delete(
+  "/admin/sliders/:id",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.deleteSlider
+);
 module.exports = router;
