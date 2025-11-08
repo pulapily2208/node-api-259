@@ -120,7 +120,9 @@ const updateAd = async (Model, req, res, adType) => {
         
         // Xử lý cập nhật ảnh (nếu có file mới)
         if (req.file) {
-            updateData.image = `upload/ads/${req.file.filename}`;
+            // Xác định thư mục lưu trữ dựa trên loại quảng cáo
+            const uploadFolder = adType.toLowerCase() === 'banner' ? 'banners' : 'sliders';
+            updateData.image = `upload/${uploadFolder}/${req.file.filename}`;
         }
 
         const updatedAd = await Model.findByIdAndUpdate(

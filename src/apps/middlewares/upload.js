@@ -48,3 +48,5 @@ const createUploadMiddleware = (subfolder) => {
 exports.uploadProduct = createUploadMiddleware('products');
 exports.uploadLogo = createUploadMiddleware('logo');
 exports.uploadAd = createUploadMiddleware('ads');
+exports.uploadBanner = createUploadMiddleware('banners');
+exports.uploadSlider = createUploadMiddleware('sliders');

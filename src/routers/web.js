@@ -22,7 +22,7 @@ const {
   validationCheck: userValidationCheck, 
 } = require("../apps/middlewares/userValidator"); 
 
-const { verifyUserAccessToken, verifyUserRefreshToken } = require("../apps/middlewares/userAuth"); 
+const { verifyUserAccessToken, verifyUserRefreshToken } = require("../apps/middlewares/userAuth");
 
 const {
   createOrderRules,
@@ -61,6 +61,8 @@ const {
   uploadProduct,
   uploadLogo,
   uploadAd,
+  uploadBanner,
+  uploadSlider
 } = require("../apps/middlewares/upload");
 
 const { param } = require("express-validator");
@@ -302,7 +304,7 @@ router.post(
     "/admin/banners",
     verifyUserAccessToken,
     authAdmin,
-    uploadAd.single("image"), 
+    uploadBanner.single("image"), 
     AdController.createBanner
 );
 router.get("/admin/banners/:id", verifyUserAccessToken, authAdmin, AdController.getBannerDetail);
@@ -310,7 +312,7 @@ router.patch(
     "/admin/banners/:id",
     verifyUserAccessToken,
     authAdmin,
-    uploadAd.single("image"), 
+    uploadBanner.single("image"), 
     AdController.updateBanner
 );
 router.delete("/admin/banners/:id", verifyUserAccessToken, authAdmin, AdController.deleteBanner);
@@ -321,7 +323,7 @@ router.post(
     "/admin/sliders",
     verifyUserAccessToken,
     authAdmin,
-    uploadAd.single("image"), 
+    uploadSlider.single("image"), 
     AdController.createSlider
 );
 router.get("/admin/sliders/:id", verifyUserAccessToken, authAdmin, AdController.getSliderDetail);
@@ -329,7 +331,7 @@ router.patch(
     "/admin/sliders/:id",
     verifyUserAccessToken,
     authAdmin,
-    uploadAd.single("image"), 
+    uploadSlider.single("image"), 
     AdController.updateSlider
 );
 router.delete("/admin/sliders/:id", verifyUserAccessToken, authAdmin, AdController.deleteSlider);
