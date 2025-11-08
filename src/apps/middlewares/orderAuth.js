@@ -22,7 +22,7 @@ exports.verifyCustomer = async (req, res, next) => {
 };
 
 exports.authAdmin = (req, res, next) => {
-    if (req.customer && req.customer.role === "admin") {
+    if (req.user && req.user.role === "admin") { 
         return next();
     }
     return res.status(403).json({

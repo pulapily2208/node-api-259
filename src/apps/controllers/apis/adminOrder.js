@@ -17,11 +17,20 @@ const findAll = async (req, res) => {
     const limit = Number(req.query.limit) || 10;
     const skip = page * limit - limit;
 
+    // Check if user is admin before proceeding
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        status: "error",
+        message: "Access denied. Admin privileges required.",
+      });
+    }
+
     const orders = await OrderModel.find(query)
       .skip(skip)
       .limit(limit)
       .sort(sort)
-      .lean();
+      .lean()
+      .maxTimeMS(30000); // Add timeout
 
     return res.status(200).json({
       status: "success",
