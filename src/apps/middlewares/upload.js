@@ -7,10 +7,9 @@ const ensureDir = (dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 };
 
-// Handler upload dùng formidable
-// Thêm tham số options để cấu hình file là bắt buộc (isMandatory)
 const handleUpload = (subfolder, options = {}) => {
-  const isMandatory = options.isMandatory || false; // Mặc định là không bắt buộc
+  const isMandatory = options.isMandatory !== undefined ? options.isMandatory : false; 
+  const fileField = options.fileField || 'image'; 
 
   return (req, res, next) => {
     const uploadDir = path.join(
@@ -32,7 +31,6 @@ const handleUpload = (subfolder, options = {}) => {
 
     form.parse(req, (err, fields, files) => {
       if (err) {
-        console.error("Formidable parse error:", err);
         return res
           .status(400)
           .json({
@@ -40,35 +38,43 @@ const handleUpload = (subfolder, options = {}) => {
             message: "Error parsing form data",
             error: err.message,
           });
-      } // files.image may be undefined, and in formidable v3+ it is an array.
-
-      let file = files.image || files.file || null; // FIX: Extract the actual file object from the array if it is an array (formidable v3+ fix).
-
+      }
+      let file = files[fileField]; 
       if (Array.isArray(file) && file.length > 0) {
         file = file[0];
       }
+      
       if (!file) {
-        // Thêm kiểm tra file bắt buộc tại đây
+          file = files.image || files.file; 
+          if (Array.isArray(file) && file.length > 0) file = file[0];
+      }
+      const flattenedFields = Object.keys(fields).reduce((acc, key) => {
+          const cleanKey = key.trim(); 
+          acc[cleanKey] = Array.isArray(fields[key]) ? fields[key][0] : fields[key];
+          return acc;
+      }, {});
+
+      // Kiểm tra file bắt buộc
+      if (!file) {
         if (isMandatory) {
           return res.status(400).json({ message: "Image is required" });
-        } // attach fields to req.body for consistency
-
-        req.body = Object.assign({}, req.body, fields);
+        } 
+        req.body = flattenedFields;
         return next();
-      } // formidable already saved file into uploadDir with a temp name; rename to timestamp+ext
+      }
 
+      // Xử lý đổi tên file và di chuyển
       const ext = path.extname(
         file.originalFilename || file.newFilename || file.name || ""
       );
       const newName = Date.now() + ext;
-      const newPath = path.join(uploadDir, newName); // file.filepath là đường dẫn tạm thời tiêu chuẩn trong formidable
+      const newPath = path.join(uploadDir, newName); 
 
       const oldPath = file.filepath || file.path || file.newFilename;
 
       try {
         fs.renameSync(oldPath, newPath);
       } catch (renameErr) {
-        console.error("Error moving uploaded file:", renameErr);
         return res
           .status(500)
           .json({
@@ -76,14 +82,21 @@ const handleUpload = (subfolder, options = {}) => {
             message: "Error saving file",
             error: renameErr.message,
           });
-      } // set uploadedFile and merge fields into req.body
+      } 
 
+      const imagePath = `/upload/${subfolder}/${newName}`;
+      
+      // set uploadedFile (thông tin file)
       req.uploadedFile = {
         filename: newName,
-        path: `/upload/${subfolder}/${newName}`,
+        path: imagePath,
         mimetype: file.mimetype || file.type || "",
       };
-      req.body = Object.assign({}, req.body, fields);
+
+      req.body = { 
+          ...flattenedFields, 
+          image: imagePath   
+      }; 
 
       next();
     });
@@ -91,10 +104,8 @@ const handleUpload = (subfolder, options = {}) => {
 };
 
 module.exports = {
-  // Chỉ định isMandatory: true cho những middleware cần file là bắt buộc
   uploadProduct: handleUpload("products", { isMandatory: true }),
   uploadLogo: handleUpload("logo"),
-  uploadAd: handleUpload("ads"),
-  uploadSlider: handleUpload("sliders"),
-  uploadBanner: handleUpload("banners"),
+  uploadSlider: handleUpload("sliders", { isMandatory: true }), 
+  uploadBanner: handleUpload("banners", { isMandatory: true }),
 };

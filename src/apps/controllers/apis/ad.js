@@ -73,21 +73,28 @@ const getAdListAdmin = async (Model, req, res, adType) => {
  * Tạo mới quảng cáo
  */
 const createAd = async (Model, req, res, adType) => {
-    // Giả định middleware upload.single('image') đã đặt file info vào req.file
-    const image = req.file ? `upload/ads/${req.file.filename}` : null;
-    const { url, target, position, publish } = req.body;
+    // FIX 1: Lấy trường 'image' trực tiếp từ req.body (đã được upload.js gán)
+    // Lấy tất cả các trường cần thiết từ req.body
+    const { url, target, position, publish, image } = req.body; 
 
+    // console.log(`--- DEBUG: Data received by Controller for ${adType} ---`);
+    // console.log("req.body:", req.body);
+    // console.log("req.body.image:", image);
+    // console.log("------------------------------------------------------");
+
+    // FIX 2: Kiểm tra file dựa trên giá trị đã được gán bởi upload.js
     if (!image) {
         return res.status(400).json({ message: "Image is required" });
     }
 
     try {
+        // FIX 3: Chuyển đổi các giá trị String từ form-data sang kiểu dữ liệu Schema mong muốn
         const newAd = new Model({
-            image,
+            image, // Sử dụng đường dẫn image đã được gán
             url,
-            target: target === 'true',
-            position: parseInt(position) || 0,
-            publish: publish === 'true',
+            target: target === 'true', // Chuyển String 'true' sang Boolean true
+            position: parseInt(position) || 0, // Chuyển String '4' sang Number 4
+            publish: publish === 'true', // Chuyển String 'true' sang Boolean true
         });
         await newAd.save();
 
@@ -96,6 +103,13 @@ const createAd = async (Model, req, res, adType) => {
             data: newAd,
         });
     } catch (error) {
+        // Xử lý lỗi validation nếu Mongoose vẫn gặp vấn đề khác
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ 
+                message: `Validation Error: ${error.message}`,
+                error: error.message
+            });
+        }
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -108,21 +122,21 @@ const createAd = async (Model, req, res, adType) => {
  */
 const updateAd = async (Model, req, res, adType) => {
     const { id } = req.params;
-    const { url, target, position, publish } = req.body;
+    // Lấy các trường từ req.body, bao gồm cả 'image' (nếu có file upload mới, image sẽ là đường dẫn mới)
+    const { url, target, position, publish, image } = req.body; 
 
     try {
         const updateData = {
             url,
-            target: target === 'true',
-            position: parseInt(position) || 0,
-            publish: publish === 'true',
+            target: target === 'true', // Chuyển đổi Boolean
+            position: parseInt(position) || 0, // Chuyển đổi Number
+            publish: publish === 'true', // Chuyển đổi Boolean
         };
         
-        // Xử lý cập nhật ảnh (nếu có file mới)
-        if (req.file) {
-            // Xác định thư mục lưu trữ dựa trên loại quảng cáo
-            const uploadFolder = adType.toLowerCase() === 'banner' ? 'banners' : 'sliders';
-            updateData.image = `upload/${uploadFolder}/${req.file.filename}`;
+        // FIX: Xử lý cập nhật ảnh
+        // Nếu req.body.image tồn tại (đã được gán bởi upload.js) thì đó là ảnh mới
+        if (image) {
+            updateData.image = image;
         }
 
         const updatedAd = await Model.findByIdAndUpdate(
