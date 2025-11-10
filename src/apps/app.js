@@ -5,7 +5,8 @@ const path = require('path');
 const config = require("config");
 const redisClient = require("../libs/redis.token");
 const cors = require("cors");
-
+const session = require('express-session'); 
+const passport = require('../common/passport');
 const app = express();
 
 app.use(cors({
@@ -15,7 +16,15 @@ app.use(cors({
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-
+app.use(session({
+    secret: config.get('app.sessionSecret'), 
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        maxAge: 24 * 60 * 60 * 1000, 
+        secure: app.get('env') === 'production', 
+    } 
+}));
 // Log Content-Type for multipart requests to help debug malformed part header
 app.use((req, res, next) => {
     const ct = req.headers['content-type'] || req.headers['Content-Type'];
@@ -36,6 +45,8 @@ app.use((req, res, next) => {
 // Note: file upload is handled per-route by `src/apps/middlewares/upload.js` using formidable
 
 // Serve static files
+app.use(passport.initialize());
+app.use(passport.session());
 app.use('/public', express.static(path.join(__dirname, '../../public')));
 app.use('/static/admin', express.static(path.join(__dirname, '../../public/admin')));
 

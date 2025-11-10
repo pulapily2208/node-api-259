@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Yêu cầu Đặt lại Mật khẩu</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+        <h2 style="color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px;">Yêu cầu Đặt lại Mật khẩu</h2>
+
+        <p>Chào bạn,</p>
+
+        <p>Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản của mình. </p>
+        <p>Để hoàn tất quá trình, vui lòng nhấp vào nút dưới đây:</p>
+
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="<%= payload.resetURL %>" 
+               style="background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                ĐẶT LẠI MẬT KHẨU
+            </a>
+        </p>
+
+        <p>Hoặc, bạn có thể sao chép và dán liên kết sau vào trình duyệt của mình:</p>
+        <p style="word-break: break-all;"><a href="<%= payload.resetURL %>"><%= payload.resetURL %></a></p>
+
+        <p style="color: #dc3545; font-style: italic;">Liên kết này sẽ hết hạn trong 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin-top: 20px;">
+        <p style="font-size: 0.9em; color: #888;">Trân trọng,<br>Đội ngũ hỗ trợ My node 259</p>
+    </div>
+
+</body>
+</html>

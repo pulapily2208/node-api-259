@@ -12,6 +12,10 @@ const UserController = require("../apps/controllers/apis/user");
 const UserAuthController = require("../apps/controllers/apis/userAuth");
 const AdController = require("../apps/controllers/apis/ad");
 
+
+const passport = require('../common/passport');
+
+
 // Import Middleware
 const { registerValidator } = require("../apps/middlewares/customerValidator");
 const { verifyCustomer } = require("../apps/middlewares/orderAuth");
@@ -99,6 +103,9 @@ router.get(
   verifyAccessToken,
   CustomerAuthController.getMe
 );
+
+router.post("/auth/customers/forgot-password", CustomerAuthController.forgotPassword);
+router.post("/auth/customers/reset-password", CustomerAuthController.resetPassword);
 
 // USER AUTH ROUTES (Admin/Member)
 router.post(

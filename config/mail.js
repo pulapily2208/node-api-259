@@ -7,5 +7,5 @@ module.exports = {
   mailFrom:
     process.env.MAIL_FROM ||
     "Admin Vietpro Shop <quantri.vietproshop@gmail.com>",
-  mailTemplate: `${__dirname}/../src/apps/emails/templates`,
+  mailTemplate: `${__dirname}/../src/emails/templates`,
 };
