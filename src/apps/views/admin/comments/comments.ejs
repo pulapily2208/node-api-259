@@ -1,0 +1,114 @@
+<%-include("../layout/head")%>
+<%-include("../layout/header")%>
+<%-include("../layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+    <div class="row">
+        <ol class="breadcrumb mt-3">
+            <li>
+                <a href="/api/admin/dashboard">
+                    <svg class="glyph stroked home">
+                        <use xlink:href="#stroked-home"></use>
+                    </svg>
+                </a>
+            </li>
+            <li class="active">Danh sách bình luận</li>
+        </ol>
+    </div><!--/.row-->
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Danh sách bình luận <a href="/api/admin/comments/create">Thêm bình luận</a></h1>
+        </div>
+    </div><!--/.row-->
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <table data-toolbar="#toolbar" data-toggle="table" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th data-field="id" data-sortable="true" style="width:50px;">ID</th>
+                                <th data-field="name" data-sortable="true" style="width:150px;">Người bình luận</th>
+                                <th style="width:200px;">Email</th>
+                                <th style="width:200px;">Tên sản phẩm</th>
+                                <th style="width:500px;">Nội dung</th>
+                                <th style="width:100px;">Trạng thái</th>
+                                <th style="width:150px;">Ngày tạo</th>
+                                <th style="width:150px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% comments.forEach((comment, index)=> { %>
+                                <tr>
+                                    <td><%= index + 1 %></td>
+                                    <td><%= comment.full_name %></td>
+                                    <td><%= comment.email %></td>
+                                    <td >
+                                        <div style="max-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <%= comment.product_id.name %>
+                                        </div></td>
+                                    <td>
+                                        <div style="max-width:500px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <%= comment.description %>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (comment.status =="active" ) { %>
+                                            <span class="label label-success">Hiển thị</span>
+                                        <% } else { %>
+                                            <span class="label label-danger">Ẩn</span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= comment.createdAt.toLocaleString() %></td>
+                                    <td class="form-group">
+                                        <a href="/api/admin/comments/detail/<%= comment._id %>" class="btn btn-primary">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a href="/api/admin/comments/delete/<%= comment._id %>" class="btn btn-danger"
+                                            onclick="return confirm('Bạn có chắc muốn xóa bình luận này không?');">
+                                            <i class="glyphicon glyphicon-remove"></i>
+                                        </a>
+
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel-footer">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <!-- Nút Previous -->
+                            <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/api/admin/comments?page=<%= prev %>">&laquo;</a>
+                            </li>
+                            <% for (let pageNumber of paginate) { %>
+                                <% if (pageNumber==="..." ) { %>
+                                    <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                                    <% } else { %>
+                                        <li class="page-item <%= page === pageNumber ? 'active' : '' %>">
+                                            <a class="page-link" href="/api/admin/comments?page=<%= pageNumber %>">
+                                                <%= pageNumber %>
+                                            </a>
+                                        </li>
+                                        <% } %>
+                                            <% } %>
+                                            <!-- Nút Next -->
+                                            <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                                                <a class="page-link" href="/api/admin/comments?page=<%= next %>">&raquo;</a>
+                                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                </div>
+        </div>
+    </div><!--/.row-->
+</div><!--/.main-->
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-table.js"></script>
+<%-include("../layout/footer")%>
