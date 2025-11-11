@@ -12,6 +12,7 @@
           </svg>
         </a>
       </li>
+      <li><a href="/api/admin/comments">Danh sách bình luận</a></li>
       <li class="active">Thêm bình luận mới</li>
     </ol>
   </div>
@@ -22,44 +23,101 @@
     </div>
   </div>
 
+  <% if (error) { %>
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <%= error %>
+    </div>
+  <% } %>
+
   <div class="row">
     <div class="col-lg-8">
-      <form action="/api/admin/comments/store" method="POST">
-        
-        <!-- Họ tên -->
-        <div class="form-group">
-          <label for="full_name">Họ và tên</label>
-          <input type="text" name="full_name" id="full_name" class="form-control" required>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Thông tin bình luận</h3>
         </div>
+        <div class="panel-body">
+          <form action="/api/admin/comments/store" method="POST">
+            
+            <!-- Họ tên -->
+            <div class="form-group">
+              <label for="name">Họ và tên <span class="text-danger">*</span></label>
+              <input type="text" name="name" id="name" class="form-control" 
+                     placeholder="Nhập họ tên người bình luận" required>
+            </div>
 
-        <!-- Email -->
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" name="email" id="email" class="form-control" required>
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email">Email <span class="text-danger">*</span></label>
+              <input type="email" name="email" id="email" class="form-control" 
+                     placeholder="example@email.com" required>
+            </div>
+
+            <!-- Sản phẩm -->
+            <div class="form-group">
+              <label for="product_id">Sản phẩm <span class="text-danger">*</span></label>
+              <select name="product_id" id="product_id" class="form-control" required>
+                <option value="">-- Chọn sản phẩm --</option>
+                <% products.forEach(product => { %>
+                  <option value="<%= product._id %>"><%= product.name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <!-- Nội dung bình luận -->
+            <div class="form-group">
+              <label for="content">Nội dung bình luận <span class="text-danger">*</span></label>
+              <textarea name="content" id="content" rows="5" class="form-control" 
+                        placeholder="Nhập nội dung bình luận..." required></textarea>
+              <small class="help-block">Nội dung bình luận sẽ được kiểm tra và lọc từ ngữ không phù hợp tự động.</small>
+            </div>
+
+            <!-- Trạng thái -->
+            <div class="form-group">
+              <label for="status">Trạng thái <span class="text-danger">*</span></label>
+              <select name="status" id="status" class="form-control">
+                <option value="pending">Chờ duyệt</option>
+                <option value="approved">Đã duyệt</option>
+              </select>
+            </div>
+
+            <hr>
+
+            <!-- Nút lưu -->
+            <div class="form-group">
+              <button type="submit" class="btn btn-success">
+                <i class="glyphicon glyphicon-floppy-disk"></i> Lưu bình luận
+              </button>
+              <a href="/api/admin/comments" class="btn btn-default">
+                <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
+              </a>
+            </div>
+          </form>
         </div>
+      </div>
+    </div>
 
-        <!-- Sản phẩm -->
-        <div class="form-group">
-          <label for="product_id">Sản phẩm</label>
-          <select name="product_id" id="product_id" class="form-control" required>
-            <% products.forEach(product => { %>
-              <option value="<%= product._id %>"><%= product.name %></option>
-            <% }) %>
-          </select>
+    <div class="col-lg-4">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h3 class="panel-title">Hướng dẫn</h3>
         </div>
-
-        <!-- Nội dung bình luận -->
-        <div class="form-group">
-          <label for="description">Nội dung bình luận</label>
-          <textarea name="description" id="description" rows="4" class="form-control" required></textarea>
+        <div class="panel-body">
+          <ul>
+            <li>Các trường có dấu <span class="text-danger">*</span> là bắt buộc</li>
+            <li>Email phải đúng định dạng</li>
+            <li>Nội dung bình luận sẽ tự động lọc từ ngữ không phù hợp</li>
+            <li>Trạng thái "Chờ duyệt" sẽ không hiển thị trên website</li>
+            <li>Trạng thái "Đã duyệt" sẽ hiển thị công khai</li>
+          </ul>
         </div>
-
-        <!-- Nút lưu -->
-        <button type="submit" class="btn btn-success">Lưu bình luận</button>
-        <a href="/api/admin/comments" class="btn btn-default">Hủy</a>
-      </form>
+      </div>
     </div>
   </div>
 </div>
 
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
 <%- include("../layout/footer") %>

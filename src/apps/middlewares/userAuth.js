@@ -4,7 +4,7 @@ const config = require("config");
 /**
  * Middleware: Xác thực Access Token cho User/Admin
  */
-const verifyUserAccessToken = (req, res, next) => {
+const verifyUserAccessToken = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
         if (!token) {
@@ -14,20 +14,14 @@ const verifyUserAccessToken = (req, res, next) => {
             });
         }
 
-        verify(token, config.get("app.jwtAccessKey"), (err, decoded) => {
-            if (err) {
-                return res.status(401).json({
-                    status: "error",
-                    message: "Invalid or expired token"
-                });
-            }
-            req.user = decoded; 
-            next();
-        });
+        // verify() bây giờ là Promise
+        const decoded = await verify(token, config.get("app.jwtAccessKey"));
+        req.user = decoded; 
+        next();
     } catch (error) {
-        return res.status(500).json({
+        return res.status(401).json({
             status: "error",
-            message: "Internal server error",
+            message: "Invalid or expired token",
             error: error.message
         });
     }
@@ -36,7 +30,7 @@ const verifyUserAccessToken = (req, res, next) => {
 /**
  * Middleware: Xác thực Refresh Token cho User/Admin
  */
-const verifyUserRefreshToken = (req, res, next) => {
+const verifyUserRefreshToken = async (req, res, next) => {
     try {
         const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
@@ -46,20 +40,14 @@ const verifyUserRefreshToken = (req, res, next) => {
             });
         }
 
-        verify(refreshToken, config.get("app.jwtRefreshKey"), (err, decoded) => {
-            if (err) {
-                return res.status(401).json({
-                    status: "error",
-                    message: "Invalid or expired refresh token"
-                });
-            }
-            req.user = decoded;
-            next();
-        });
+        // verify() bây giờ là Promise
+        const decoded = await verify(refreshToken, config.get("app.jwtRefreshKey"));
+        req.user = decoded;
+        next();
     } catch (error) {
-        return res.status(500).json({
+        return res.status(401).json({
             status: "error",
-            message: "Internal server error",
+            message: "Invalid or expired refresh token",
             error: error.message
         });
     }

@@ -7,6 +7,7 @@ const { requireLogin, attachAuthHeaders, webLoginRules, webLoginValidator } = re
 const CategoryController = require("../apps/controllers/web/category");
 const ProductController = require("../apps/controllers/web/product");
 const BannerController = require("../apps/controllers/web/banner");
+const CommentController = require("../apps/controllers/web/comment");
 
 // Import Middleware
 const {
@@ -22,8 +23,19 @@ const {
     createBannerRules, 
     updateBannerRules 
 } = require("../apps/middlewares/adValidator");
-// Tuyến chính cho trang Admin Dashboard
-router.use(attachAuthHeaders);
+
+// Debug route
+router.get("/debug-session", (req, res) => {
+    res.json({
+        hasSession: !!req.session,
+        hasUser: !!(req.session && req.session.user),
+        hasToken: !!(req.session && req.session.accessToken),
+        user: req.session?.user?.email || 'none',
+        sessionID: req.sessionID || 'none',
+        cookies: req.cookies
+    });
+});
+
 router.get("/login", AuthController.loginForm);
 router.post("/login", AuthController.login);
 router.get("/logout", AuthController.logout);
@@ -89,5 +101,33 @@ router.post(
 router.get("/admin/banners/delete/:id", requireLogin, BannerController.destroy);
 router.get("/admin/banners/moveup/:id", requireLogin, BannerController.moveUp);
 router.get("/admin/banners/movedown/:id", requireLogin, BannerController.moveDown);
+
+// Tuyến quản lý Slider (tương tự Banner)
+router.get("/admin/sliders", requireLogin, BannerController.index);
+router.get("/admin/sliders/create", requireLogin, BannerController.create);
+router.post(
+  "/admin/sliders/store",
+  requireLogin,
+  upload.single("image"),
+  createBannerRules,
+  BannerController.store
+);
+router.get("/admin/sliders/edit/:id", requireLogin, BannerController.edit);
+router.post(
+  "/admin/sliders/update/:id",
+  requireLogin,
+  upload.single("image"),
+  updateBannerRules,
+  BannerController.update
+);
+router.get("/admin/sliders/delete/:id", requireLogin, BannerController.destroy);
+router.get("/admin/sliders/moveup/:id", requireLogin, BannerController.moveUp);
+router.get("/admin/sliders/movedown/:id", requireLogin, BannerController.moveDown);
+
+// Tuyến quản lý Comment
+router.get("/admin/comments", requireLogin, CommentController.list);
+router.get("/admin/comments/detail/:id", requireLogin, CommentController.detail);
+router.post("/admin/comments/update/:id", requireLogin, CommentController.updateStatus);
+router.get("/admin/comments/delete/:id", requireLogin, CommentController.delete);
 
 module.exports = router;

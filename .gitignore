@@ -1,2 +1,22 @@
+# Dependencies
 node_modules
+
+# Environment variables
 .env
+
+# Temporary files
+src/public/upload/temp/*
+!src/public/upload/temp/.gitkeep
+
+# Test and debug files
+*.test.js
+test-*.js
+check-*.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -18,62 +18,103 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">Danh sách bình luận <a href="/api/admin/comments/create">Thêm bình luận</a></h1>
+            <h1 class="page-header">
+                Danh sách bình luận
+            </h1>
         </div>
     </div><!--/.row-->
+
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= success %>
+        </div>
+    <% } %>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= error %>
+        </div>
+    <% } %>
 
     <div class="row">
         <div class="col-lg-12">
             <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="btn-group" role="group">
+                        <a href="/api/admin/comments" class="btn btn-default <%= currentStatus === 'all' ? 'active' : '' %>">
+                            Tất cả
+                        </a>
+                        <a href="/api/admin/comments?status=pending" class="btn btn-default <%= currentStatus === 'pending' ? 'active' : '' %>">
+                            Chờ duyệt
+                        </a>
+                        <a href="/api/admin/comments?status=approved" class="btn btn-default <%= currentStatus === 'approved' ? 'active' : '' %>">
+                            Đã duyệt
+                        </a>
+                    </div>
+                </div>
                 <div class="panel-body">
                     <table data-toolbar="#toolbar" data-toggle="table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th data-field="id" data-sortable="true" style="width:50px;">ID</th>
-                                <th data-field="name" data-sortable="true" style="width:150px;">Người bình luận</th>
-                                <th style="width:200px;">Email</th>
-                                <th style="width:200px;">Tên sản phẩm</th>
-                                <th style="width:500px;">Nội dung</th>
+                                <th style="width:50px;">STT</th>
+                                <th style="width:150px;">Người bình luận</th>
+                                <th style="width:150px;">Email</th>
+                                <th style="width:200px;">Sản phẩm</th>
+                                <th style="width:300px;">Nội dung</th>
                                 <th style="width:100px;">Trạng thái</th>
                                 <th style="width:150px;">Ngày tạo</th>
-                                <th style="width:150px;">Hành động</th>
+                                <th style="width:180px;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <% comments.forEach((comment, index)=> { %>
+                            <% if (comments.length === 0) { %>
                                 <tr>
-                                    <td><%= index + 1 %></td>
-                                    <td><%= comment.full_name %></td>
-                                    <td><%= comment.email %></td>
-                                    <td >
-                                        <div style="max-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                            <%= comment.product_id.name %>
-                                        </div></td>
-                                    <td>
-                                        <div style="max-width:500px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                            <%= comment.description %>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <% if (comment.status =="active" ) { %>
-                                            <span class="label label-success">Hiển thị</span>
-                                        <% } else { %>
-                                            <span class="label label-danger">Ẩn</span>
-                                        <% } %>
-                                    </td>
-                                    <td><%= comment.createdAt.toLocaleString() %></td>
-                                    <td class="form-group">
-                                        <a href="/api/admin/comments/detail/<%= comment._id %>" class="btn btn-primary">
-                                            <i class="fa-regular fa-eye"></i>
-                                        </a>
-                                        <a href="/api/admin/comments/delete/<%= comment._id %>" class="btn btn-danger"
-                                            onclick="return confirm('Bạn có chắc muốn xóa bình luận này không?');">
-                                            <i class="glyphicon glyphicon-remove"></i>
-                                        </a>
-
-                                    </td>
+                                    <td colspan="8" class="text-center">Không có bình luận nào</td>
                                 </tr>
-                            <% }) %>
+                            <% } else { %>
+                                <% comments.forEach((comment, index)=> { %>
+                                    <tr id="comment-<%= comment._id %>">
+                                        <td><%= (page - 1) * 10 + index + 1 %></td>
+                                        <td><%= comment.name || comment.full_name || 'N/A' %></td>
+                                        <td><%= comment.email %></td>
+                                        <td>
+                                            <div style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<%= comment.product_id?.name || 'N/A' %>">
+                                                <%= comment.product_id?.name || 'N/A' %>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<%= comment.content || comment.description || '' %>">
+                                                <%= comment.content || comment.description || '' %>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <select class="form-control status-select" data-comment-id="<%= comment._id %>" style="width:auto;">
+                                                <option value="pending" <%= comment.status === 'pending' ? 'selected' : '' %>>Chờ duyệt</option>
+                                                <option value="approved" <%= comment.status === 'approved' || comment.status === 'active' ? 'selected' : '' %>>Đã duyệt</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <%= new Date(comment.createdAt).toLocaleDateString('vi-VN') %><br>
+                                            <small><%= new Date(comment.createdAt).toLocaleTimeString('vi-VN') %></small>
+                                        </td>
+                                        <td class="form-group">
+                                            <a href="/api/admin/comments/detail/<%= comment._id %>" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                                <i class="glyphicon glyphicon-eye-open"></i>
+                                            </a>
+                                            <a href="/api/admin/comments/delete/<%= comment._id %>" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Bạn có chắc muốn xóa bình luận này không?');" title="Xóa">
+                                                <i class="glyphicon glyphicon-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
                         </tbody>
                     </table>
                 </div>
@@ -83,32 +124,61 @@
                         <ul class="pagination">
                             <!-- Nút Previous -->
                             <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
-                                <a class="page-link" href="/api/admin/comments?page=<%= prev %>">&laquo;</a>
+                                <a class="page-link" href="/api/admin/comments?page=<%= prev %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">&laquo;</a>
                             </li>
                             <% for (let pageNumber of paginate) { %>
                                 <% if (pageNumber==="..." ) { %>
                                     <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                                    <% } else { %>
-                                        <li class="page-item <%= page === pageNumber ? 'active' : '' %>">
-                                            <a class="page-link" href="/api/admin/comments?page=<%= pageNumber %>">
-                                                <%= pageNumber %>
-                                            </a>
-                                        </li>
-                                        <% } %>
-                                            <% } %>
-                                            <!-- Nút Next -->
-                                            <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
-                                                <a class="page-link" href="/api/admin/comments?page=<%= next %>">&raquo;</a>
-                                            </li>
+                                <% } else { %>
+                                    <li class="page-item <%= page === pageNumber ? 'active' : '' %>">
+                                        <a class="page-link" href="/api/admin/comments?page=<%= pageNumber %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">
+                                            <%= pageNumber %>
+                                        </a>
+                                    </li>
+                                <% } %>
+                            <% } %>
+                            <!-- Nút Next -->
+                            <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/api/admin/comments?page=<%= next %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">&raquo;</a>
+                            </li>
                         </ul>
                     </nav>
                 </div>
-                </div>
+            </div>
         </div>
     </div><!--/.row-->
 </div><!--/.main-->
 
-<script src="js/jquery-1.11.1.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/bootstrap-table.js"></script>
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<script src="/admin/js/bootstrap-table.js"></script>
+<script>
+$(document).ready(function() {
+    $('.status-select').on('change', function() {
+        const commentId = $(this).data('comment-id');
+        const newStatus = $(this).val();
+        
+        $.ajax({
+            url: `/api/comments/${commentId}/status`,
+            method: 'PATCH',
+            contentType: 'application/json',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+            },
+            data: JSON.stringify({ status: newStatus }),
+            success: function(response) {
+                if (response.success) {
+                    alert('Cập nhật trạng thái thành công!');
+                } else {
+                    alert('Có lỗi xảy ra: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Có lỗi xảy ra khi cập nhật trạng thái');
+                console.error(xhr);
+            }
+        });
+    });
+});
+</script>
 <%-include("../layout/footer")%>

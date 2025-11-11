@@ -24,63 +24,150 @@
     </div><!--/.row-->
 
     <div class="row">
-        <div class="col-lg-12">
-            <form method="post" action="/api/admin/comments/update/<%= comment._id%>"</form>>
-                <div class="panel panel-default">
-                    <div class="panel-body">
+        <div class="col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Thông tin bình luận</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width:200px;">Người bình luận</th>
+                            <td><%= comment.name || comment.full_name || 'N/A' %></td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td><%= comment.email %></td>
+                        </tr>
+                        <tr>
+                            <th>Nội dung bình luận</th>
+                            <td><%= comment.content || comment.description || '' %></td>
+                        </tr>
+                        <tr>
+                            <th>Trạng thái</th>
+                            <td>
+                                <% if (comment.status === 'pending') { %>
+                                    <span class="label label-warning">Chờ duyệt</span>
+                                <% } else if (comment.status === 'approved' || comment.status === 'active') { %>
+                                    <span class="label label-success">Đã duyệt</span>
+                                <% } else { %>
+                                    <span class="label label-default"><%= comment.status %></span>
+                                <% } %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Ngày tạo</th>
+                            <td>
+                                <%= new Date(comment.createdAt).toLocaleDateString('vi-VN') %>
+                                <%= new Date(comment.createdAt).toLocaleTimeString('vi-VN') %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Cập nhật lần cuối</th>
+                            <td>
+                                <%= new Date(comment.updatedAt).toLocaleDateString('vi-VN') %>
+                                <%= new Date(comment.updatedAt).toLocaleTimeString('vi-VN') %>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Thông tin sản phẩm</h3>
+                </div>
+                <div class="panel-body">
+                    <% if (comment.product_id) { %>
+                        <div class="text-center mb-3">
+                            <% if (comment.product_id.image) { %>
+                                <img src="<%= comment.product_id.image %>" alt="<%= comment.product_id.name %>" 
+                                     class="img-responsive" style="max-height: 200px; margin: 0 auto;">
+                            <% } %>
+                        </div>
                         <table class="table table-bordered">
-                            <tr>
-                                <th>Người bình luận</th>
-                                <td><%= comment.full_name %></td>
-                            </tr>
-                            <tr>
-                                <th>Email</th>
-                                <td><%= comment.email %></td>
-                            </tr>
                             <tr>
                                 <th>Tên sản phẩm</th>
                                 <td><%= comment.product_id.name %></td>
                             </tr>
                             <tr>
-                                <th>Nội dung bình luận</th>
-                                <td><%= comment.description %></td>
-                            </tr>
-                            <tr>
-                                <th>Trạng thái</th>
-                                <td>
-                                    <select class="form-control" name="status">
-                                        <option value="active" <%= comment.status == 'active' ? "selected" : "" %> >Hiển thị</option>
-                                        <option value="inactive" <%= comment.status == 'inactive' ? "selected" : "" %>>Ẩn</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Ngày tạo</th>
-                                <td><%= comment.createdAt.toLocaleString() %></</td>
+                                <th>Giá</th>
+                                <td><%= (comment.product_id.price || 0).toLocaleString('vi-VN') %> đ</td>
                             </tr>
                         </table>
-                    </div>
-                    <div class="panel-footer d-flex justify-content-between" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <a href="/api/admin/comments" class="btn btn-default">
-                                <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
-                            </a>
-                        </div>
-                        <div>
-                            <button type="submit" class="btn btn-success">
-                                <i class="glyphicon glyphicon-floppy-disk"></i> Lưu trạng thái
-                            </button>
-                            <a href="/api/admin/comments/delete/<%= comment._id%>" class="btn btn-danger ms-4" onclick="return confirm('Bạn có chắc muốn xóa bình luận này?');">
-                                <i class="glyphicon glyphicon-remove"></i> Xóa bình luận
-                            </a>
-                        </div>
+                        <a href="/api/admin/products/detail/<%= comment.product_id._id %>" class="btn btn-info btn-block">
+                            <i class="glyphicon glyphicon-eye-open"></i> Xem sản phẩm
+                        </a>
+                    <% } else { %>
+                        <p class="text-muted">Không có thông tin sản phẩm</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Hành động</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group-vertical btn-block">
+                        <button type="button" class="btn btn-success" id="approveBtn">
+                            <i class="glyphicon glyphicon-ok"></i> Duyệt bình luận
+                        </button>
+                        <button type="button" class="btn btn-warning" id="pendingBtn">
+                            <i class="glyphicon glyphicon-time"></i> Chờ duyệt
+                        </button>
+                        <a href="/api/admin/comments/delete/<%= comment._id %>" 
+                           class="btn btn-danger" 
+                           onclick="return confirm('Bạn có chắc muốn xóa bình luận này?');">
+                            <i class="glyphicon glyphicon-trash"></i> Xóa bình luận
+                        </a>
+                        <a href="/api/admin/comments" class="btn btn-default">
+                            <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
+                        </a>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div><!--/.row-->
 </div><!--/.main-->
 
-<script src="js/jquery-1.11.1.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#approveBtn').on('click', function() {
+        updateCommentStatus('approved');
+    });
+
+    $('#pendingBtn').on('click', function() {
+        updateCommentStatus('pending');
+    });
+
+    function updateCommentStatus(status) {
+        $.ajax({
+            url: '/api/comments/<%= comment._id %>/status',
+            method: 'PATCH',
+            contentType: 'application/json',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+            },
+            data: JSON.stringify({ status: status }),
+            success: function(response) {
+                if (response.success) {
+                    alert('Cập nhật trạng thái thành công!');
+                    location.reload();
+                } else {
+                    alert('Có lỗi xảy ra: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Có lỗi xảy ra khi cập nhật trạng thái');
+                console.error(xhr);
+            }
+        });
+    }
+});
+</script>
 <%-include("../layout/footer")%>

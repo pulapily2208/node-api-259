@@ -7,24 +7,41 @@ const paginate = require("../../../libs/paginate");
  */
 const getAdListPublic = async (Model, req, res, adType) => {
     const { page, limit } = req.query;
-
-    const options = {
-        page: parseInt(page) || 1,
-        limit: parseInt(limit) || 10,
-        sort: { position: 1, updatedAt: -1 },
-        criteria: { publish: true } 
-    };
+    
+    const currentPage = parseInt(page) || 1;
+    const currentLimit = parseInt(limit) || 10;
+    const criteria = { publish: true }; // Chỉ lấy đã publish
 
     try {
-        const ads = await paginate(Model, options);
+        // Lấy tổng số documents
+        const total = await Model.countDocuments(criteria);
+        
+        // Lấy documents cho trang hiện tại
+        const docs = await Model.find(criteria)
+            .sort({ position: 1, updatedAt: -1 })
+            .skip((currentPage - 1) * currentLimit)
+            .limit(currentLimit);
+        
+        // Tính toán pagination
+        const totalPages = Math.ceil(total / currentLimit);
+        const hasNext = currentPage < totalPages;
+        const hasPrev = currentPage > 1;
+        
         res.status(200).json({
             message: `Get public ${adType} list success`,
             data: {
-                docs: ads.docs,
-                pages: ads.pages,
-                total: ads.total,
-                page: ads.page,
-                limit: ads.limit
+                docs: docs,
+                pages: {
+                    page: currentPage,
+                    totalPage: totalPages,
+                    hasNext: hasNext,
+                    hasPrev: hasPrev,
+                    next: hasNext ? currentPage + 1 : null,
+                    prev: hasPrev ? currentPage - 1 : null,
+                },
+                total: total,
+                page: currentPage,
+                limit: currentLimit
             },
         });
     } catch (error) {
@@ -41,24 +58,41 @@ const getAdListPublic = async (Model, req, res, adType) => {
  */
 const getAdListAdmin = async (Model, req, res, adType) => {
     const { page, limit } = req.query;
-
-    const options = {
-        page: parseInt(page) || 1,
-        limit: parseInt(limit) || 10,
-        sort: { position: 1, updatedAt: -1 }, 
-        criteria: {} // Lấy TẤT CẢ (kể cả chưa publish)
-    };
+    
+    const currentPage = parseInt(page) || 1;
+    const currentLimit = parseInt(limit) || 10;
+    const criteria = {}; // Lấy TẤT CẢ (kể cả chưa publish)
 
     try {
-        const ads = await paginate(Model, options);
+        // Lấy tổng số documents
+        const total = await Model.countDocuments(criteria);
+        
+        // Lấy documents cho trang hiện tại
+        const docs = await Model.find(criteria)
+            .sort({ position: 1, updatedAt: -1 })
+            .skip((currentPage - 1) * currentLimit)
+            .limit(currentLimit);
+        
+        // Tính toán pagination
+        const totalPages = Math.ceil(total / currentLimit);
+        const hasNext = currentPage < totalPages;
+        const hasPrev = currentPage > 1;
+        
         res.status(200).json({
             message: `Get admin ${adType} list success`,
             data: {
-                docs: ads.docs,
-                pages: ads.pages,
-                total: ads.total,
-                page: ads.page,
-                limit: ads.limit
+                docs: docs,
+                pages: {
+                    page: currentPage,
+                    totalPage: totalPages,
+                    hasNext: hasNext,
+                    hasPrev: hasPrev,
+                    next: hasNext ? currentPage + 1 : null,
+                    prev: hasPrev ? currentPage - 1 : null,
+                },
+                total: total,
+                page: currentPage,
+                limit: currentLimit
             },
         });
     } catch (error) {
@@ -75,12 +109,7 @@ const getAdListAdmin = async (Model, req, res, adType) => {
 const createAd = async (Model, req, res, adType) => {
     // FIX 1: Lấy trường 'image' trực tiếp từ req.body (đã được upload.js gán)
     // Lấy tất cả các trường cần thiết từ req.body
-    const { url, target, position, publish, image } = req.body; 
-
-    // console.log(`--- DEBUG: Data received by Controller for ${adType} ---`);
-    // console.log("req.body:", req.body);
-    // console.log("req.body.image:", image);
-    // console.log("------------------------------------------------------");
+    const { url, target, publish, image } = req.body; 
 
     // FIX 2: Kiểm tra file dựa trên giá trị đã được gán bởi upload.js
     if (!image) {
@@ -88,12 +117,15 @@ const createAd = async (Model, req, res, adType) => {
     }
 
     try {
-        // FIX 3: Chuyển đổi các giá trị String từ form-data sang kiểu dữ liệu Schema mong muốn
+        // LOGIC MỚI: Tăng position của TẤT CẢ banner hiện có lên +1
+        await Model.updateMany({}, { $inc: { position: 1 } });
+        
+        // FIX 3: Tạo banner mới với position = 0 (luôn ở đầu)
         const newAd = new Model({
             image, // Sử dụng đường dẫn image đã được gán
             url,
             target: target === 'true', // Chuyển String 'true' sang Boolean true
-            position: parseInt(position) || 0, // Chuyển String '4' sang Number 4
+            position: 0, // Luôn là 0 - vị trí đầu tiên
             publish: publish === 'true', // Chuyển String 'true' sang Boolean true
         });
         await newAd.save();
@@ -195,9 +227,115 @@ const deleteAd = async (Model, req, res, adType) => {
             return res.status(404).json({ message: `${adType} not found` });
         }
 
+        // Giảm position của tất cả banner có position > deletedAd.position
+        await Model.updateMany(
+            { position: { $gt: deletedAd.position } },
+            { $inc: { position: -1 } }
+        );
+
         res.status(200).json({
             message: `${adType} deleted successfully`,
             data: deletedAd,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Di chuyển quảng cáo lên (giảm position)
+ */
+const moveAdUp = async (Model, req, res, adType) => {
+    const { id } = req.params;
+    
+    try {
+        // Lấy banner hiện tại
+        const currentAd = await Model.findById(id);
+        if (!currentAd) {
+            return res.status(404).json({ message: `${adType} not found` });
+        }
+        
+        const currentPosition = currentAd.position;
+        
+        // Nếu đã ở vị trí đầu tiên (0), không thể move up
+        if (currentPosition <= 0) {
+            return res.status(400).json({ 
+                message: `${adType} is already at the top position` 
+            });
+        }
+        
+        const newPosition = currentPosition - 1;
+        
+        // Tìm banner ở vị trí mục tiêu (vị trí sẽ swap)
+        const targetAd = await Model.findOne({ position: newPosition });
+        
+        // Bắt đầu transaction để đảm bảo cả 2 update thành công
+        // Swap positions
+        currentAd.position = newPosition;
+        await currentAd.save();
+        
+        if (targetAd) {
+            targetAd.position = currentPosition;
+            await targetAd.save();
+        }
+        
+        res.status(200).json({
+            message: `${adType} moved up successfully`,
+            data: currentAd,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Di chuyển quảng cáo xuống (tăng position)
+ */
+const moveAdDown = async (Model, req, res, adType) => {
+    const { id } = req.params;
+    
+    try {
+        // Lấy banner hiện tại
+        const currentAd = await Model.findById(id);
+        if (!currentAd) {
+            return res.status(404).json({ message: `${adType} not found` });
+        }
+        
+        const currentPosition = currentAd.position;
+        
+        // Lấy tổng số ads để kiểm tra vị trí cuối
+        const totalAds = await Model.countDocuments();
+        
+        // Nếu đã ở vị trí cuối, không thể move down
+        if (currentPosition >= totalAds - 1) {
+            return res.status(400).json({ 
+                message: `${adType} is already at the bottom position` 
+            });
+        }
+        
+        const newPosition = currentPosition + 1;
+        
+        // Tìm banner ở vị trí mục tiêu (vị trí sẽ swap)
+        const targetAd = await Model.findOne({ position: newPosition });
+        
+        // Swap positions
+        currentAd.position = newPosition;
+        await currentAd.save();
+        
+        if (targetAd) {
+            targetAd.position = currentPosition;
+            await targetAd.save();
+        }
+        
+        res.status(200).json({
+            message: `${adType} moved down successfully`,
+            data: currentAd,
         });
     } catch (error) {
         res.status(500).json({
@@ -222,6 +360,8 @@ exports.createBanner = (req, res) => createAd(BannerModel, req, res, 'Banner');
 exports.getBannerDetail = (req, res) => getAdDetail(BannerModel, req, res, 'Banner');
 exports.updateBanner = (req, res) => updateAd(BannerModel, req, res, 'Banner');
 exports.deleteBanner = (req, res) => deleteAd(BannerModel, req, res, 'Banner');
+exports.moveBannerUp = (req, res) => moveAdUp(BannerModel, req, res, 'Banner');
+exports.moveBannerDown = (req, res) => moveAdDown(BannerModel, req, res, 'Banner');
 
 // --- Admin APIs (Slider) ---
 exports.adminListSliders = (req, res) => getAdListAdmin(SliderModel, req, res, 'slider');
@@ -229,3 +369,5 @@ exports.createSlider = (req, res) => createAd(SliderModel, req, res, 'Slider');
 exports.getSliderDetail = (req, res) => getAdDetail(SliderModel, req, res, 'Slider');
 exports.updateSlider = (req, res) => updateAd(SliderModel, req, res, 'Slider');
 exports.deleteSlider = (req, res) => deleteAd(SliderModel, req, res, 'Slider');
+exports.moveSliderUp = (req, res) => moveAdUp(SliderModel, req, res, 'Slider');
+exports.moveSliderDown = (req, res) => moveAdDown(SliderModel, req, res, 'Slider');

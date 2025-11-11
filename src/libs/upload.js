@@ -6,9 +6,11 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, '..', 'public', 'upload', 'products'));
     },
-    // Đặt tên file
+    // Đặt tên file với timestamp để tránh trùng
     filename: (req, file, cb) => {
-        cb(null, file.originalname);
+        const ext = path.extname(file.originalname);
+        const filename = Date.now() + ext;
+        cb(null, filename);
     }
 });
 

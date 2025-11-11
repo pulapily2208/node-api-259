@@ -310,7 +310,7 @@ router.post(
   "/admin/banners",
   verifyUserAccessToken,
   authAdmin,
-  upload.uploadBanner,
+  upload.uploadBannerCreate,
   AdController.createBanner
 );
 router.get(
@@ -332,6 +332,18 @@ router.delete(
   authAdmin,
   AdController.deleteBanner
 );
+router.patch(
+  "/admin/banners/:id/moveup",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.moveBannerUp
+);
+router.patch(
+  "/admin/banners/:id/movedown",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.moveBannerDown
+);
 
 // --- SLIDER ROUTES (Admin) ---
 router.get(
@@ -344,7 +356,7 @@ router.post(
   "/admin/sliders",
   verifyUserAccessToken,
   authAdmin,
-  upload.uploadSlider,
+  upload.uploadSliderCreate,
   AdController.createSlider
 );
 router.get(
@@ -365,6 +377,18 @@ router.delete(
   verifyUserAccessToken,
   authAdmin,
   AdController.deleteSlider
+);
+router.patch(
+  "/admin/sliders/:id/moveup",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.moveSliderUp
+);
+router.patch(
+  "/admin/sliders/:id/movedown",
+  verifyUserAccessToken,
+  authAdmin,
+  AdController.moveSliderDown
 );
 
 module.exports = router;

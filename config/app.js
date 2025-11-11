@@ -12,5 +12,5 @@ module.exports = {
   facebookClientID: process.env.FACEBOOK_CLIENT_ID ,
   facebookClientSecret: process.env.FACEBOOK_CLIENT_SECRET ,
   
-  sessionSecret: process.env.SESSION_SECRET,
+  sessionSecret: process.env.SESSION_SECRET || "vietpro_session_secret_key_default",
 };

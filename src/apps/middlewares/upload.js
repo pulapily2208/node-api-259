@@ -12,6 +12,17 @@ const handleUpload = (subfolder, options = {}) => {
   const fileField = options.fileField || 'image'; 
 
   return (req, res, next) => {
+    // Kiểm tra Content-Type - chỉ parse nếu là multipart/form-data
+    const contentType = req.headers['content-type'] || '';
+    if (!contentType.includes('multipart/form-data')) {
+      // Không phải multipart, bỏ qua middleware này
+      // NHƯNG nếu là mandatory và body đã có image (từ web controller), cho qua
+      if (isMandatory && !req.body.image) {
+        return res.status(400).json({ message: "Image is required" });
+      }
+      return next();
+    }
+
     const uploadDir = path.join(
       __dirname,
       "..",
@@ -106,6 +117,8 @@ const handleUpload = (subfolder, options = {}) => {
 module.exports = {
   uploadProduct: handleUpload("products", { isMandatory: true }),
   uploadLogo: handleUpload("logo"),
-  uploadSlider: handleUpload("sliders", { isMandatory: true }), 
-  uploadBanner: handleUpload("banners", { isMandatory: true }),
+  uploadSlider: handleUpload("sliders", { isMandatory: false }), 
+  uploadBanner: handleUpload("banners", { isMandatory: false }),
+  uploadSliderCreate: handleUpload("sliders", { isMandatory: true }),
+  uploadBannerCreate: handleUpload("banners", { isMandatory: true }),
 };

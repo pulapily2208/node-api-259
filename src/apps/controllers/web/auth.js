@@ -17,11 +17,21 @@ exports.login = async (req, res) => {
     const response = await axios.post(apiUrl, { email, password });
     const { data: user, accessToken } = response.data;
     
-    console.log('Login Success:', { userId: user._id, email: user.email });
+    console.log('Login Success:', { userId: user._id, email: user.email, token: accessToken ? 'exists' : 'missing' });
     
     req.session.user = user;
     req.session.accessToken = accessToken;
-    return res.redirect('/admin');
+    
+    // Explicitly save session before redirecting
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        req.flash('errors', [{ msg: 'Lỗi lưu phiên đăng nhập. Vui lòng thử lại.' }]);
+        return res.redirect('/login');
+      }
+      console.log('Session saved successfully with token:', !!accessToken);
+      return res.redirect('/admin');
+    });
   } catch (error) {
     console.error('Login Error:', {
       status: error.response?.status,

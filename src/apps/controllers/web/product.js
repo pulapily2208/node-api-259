@@ -116,8 +116,10 @@ exports.store = async (req, res) => {
         const productData = {
             ...req.body,
             image: imagePath,
-            is_stock: req.body.is_stock === 'true' || req.body.is_stock === true, 
-            is_featured: req.body.is_featured === 'true' || req.body.is_featured === true, 
+            // is_stock: select với value="1" hoặc "0"
+            is_stock: req.body.is_stock === '1' || req.body.is_stock === 1 || req.body.is_stock === true,
+            // is_featured: checkbox với value="1", unchecked không gửi field
+            is_featured: req.body.is_featured === '1' || req.body.is_featured === 1 || req.body.is_featured === true,
         };
 
         // Tạo product trực tiếp
@@ -197,8 +199,6 @@ exports.update = async (req, res) => {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const apiUrl = `${baseUrl}${apiPrefix}/products/${id}`; 
 
-        // Web layer đã xử lý upload qua multer, file đã được lưu
-        // Gửi JSON data tới API (API sẽ không re-upload, chỉ update DB)
         let updateData = { ...req.body };
         
         if (req.file) {
@@ -206,19 +206,13 @@ exports.update = async (req, res) => {
             updateData.image = normalizeImagePath(req.file.filename, PRODUCT_SUBFOLDER);
         }
         
-        // Chuyển đổi boolean
+        // Chuyển đổi boolean cho is_stock
         if (updateData.is_stock !== undefined) {
-             updateData.is_stock = updateData.is_stock === 'true' || updateData.is_stock === true;
-        }
-        if (updateData.is_featured !== undefined) {
-             updateData.is_featured = updateData.is_featured === 'true' || updateData.is_featured === true;
+             updateData.is_stock = updateData.is_stock === '1' || updateData.is_stock === 1 || updateData.is_stock === true;
         }
 
-        // Gọi API PUT với JSON (không phải multipart vì file đã được xử lý)
-        // Vấn đề: API route có middleware upload.uploadProduct, nhưng ta gửi JSON
-        // => Cần bỏ qua việc gọi API, xử lý trực tiếp ở web controller
-        
-        // Import model và xử lý trực tiếp thay vì gọi API
+        updateData.is_featured = updateData.is_featured === '1' || updateData.is_featured === 1 || updateData.is_featured === true;
+
         const ProductModel = require('../../models/product');
         const fs = require('fs');
         const path = require('path');
@@ -247,7 +241,7 @@ exports.update = async (req, res) => {
             { new: true, runValidators: true }
         );
         
-        req.flash('success', `Cập nhật sản phẩm thành công!`); 
+        req.flash('success', `Cập nhật sản phẩm ${product.name} thành công!`); 
         return res.redirect("/admin/products");
 
     } catch (error) {

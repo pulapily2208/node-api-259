@@ -2,18 +2,19 @@ const CommentModel = require("../../models/comment");
 const paginate = require("../../../libs/paginate");
 
 const PROHIBITED_WORDS = [
-  "đcm","đm","cmm","cc","shit","cút","mm"
+  "đcm","đm","cmm","cc","shit","cút","mm","fuck","đéo","lồn","địt","chó","bitch","damn"
 ];
 
 const censorProfanity = (content) => {
   let censoredContent = content; 
-  const CENSOR_STRING = "**";
   
   for (const word of PROHIBITED_WORDS) {
     const regex = new RegExp(`([\\s\\W]|^)(${word})([\\s\\W]|$)`, 'gi');
     
     censoredContent = censoredContent.replace(regex, (match, before, matchedWord, after) => {
-      return before + CENSOR_STRING + after;
+      // Thay thế bằng số lượng dấu * tương ứng với độ dài từ
+      const censorString = '*'.repeat(matchedWord.length);
+      return before + censorString + after;
     });
   }
   return censoredContent; 
