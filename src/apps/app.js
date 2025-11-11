@@ -7,15 +7,26 @@ const redisClient = require("../libs/redis.token");
 const cors = require("cors");
 const session = require('express-session'); 
 const passport = require('../common/passport');
+const flash = require('connect-flash'); 
 const app = express();
 
+// Cấu hình CORS
 app.use(cors({
     origin: true, 
     credentials: true 
 }));
 
+// Cấu hình View Engine cho EJS
+app.set("views", path.join(__dirname, "views")); 
+app.set("view engine", "ejs");
+
+// Parse JSON bodies (for API requests)
 app.use(bodyParser.json());
+// Parse URL-encoded bodies (for HTML forms)
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Cấu hình Session
 app.use(session({
     secret: config.get('app.sessionSecret'), 
     resave: false,
@@ -25,7 +36,11 @@ app.use(session({
         secure: app.get('env') === 'production', 
     } 
 }));
-// Log Content-Type for multipart requests to help debug malformed part header
+
+
+app.use(flash());
+
+
 app.use((req, res, next) => {
     const ct = req.headers['content-type'] || req.headers['Content-Type'];
     if (ct && typeof ct === 'string' && ct.indexOf('multipart/form-data') === 0) {
@@ -42,13 +57,23 @@ app.use((req, res, next) => {
     next();
 });
 
-// Note: file upload is handled per-route by `src/apps/middlewares/upload.js` using formidable
 
 // Serve static files
 app.use(passport.initialize());
 app.use(passport.session());
-app.use('/public', express.static(path.join(__dirname, '../../public')));
-app.use('/static/admin', express.static(path.join(__dirname, '../../public/admin')));
 
+const PUBLIC_ROOT = path.join(__dirname, '../public');
+app.use('/public', express.static(PUBLIC_ROOT));
+app.use('/static', express.static(PUBLIC_ROOT));
+app.use('/upload', express.static(path.join(PUBLIC_ROOT, 'upload')));
+// Backward-compat alias for legacy templates that used "/uploads"
+app.use('/uploads', express.static(path.join(PUBLIC_ROOT, 'upload')));
+
+
+// Router API 
 app.use(config.get("app.prefixApiVersion"), require("../routers/web"));
+
+// Router cho các trang Web/Admin EJS
+app.use("/", require("../routers/site")); 
+
 module.exports = app;

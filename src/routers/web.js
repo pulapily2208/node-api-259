@@ -12,7 +12,7 @@ const UserController = require("../apps/controllers/apis/user");
 const UserAuthController = require("../apps/controllers/apis/userAuth");
 const AdController = require("../apps/controllers/apis/ad");
 
-
+console.log('Debugging ProductController:', typeof ProductController.findAll);
 const passport = require('../common/passport');
 
 
@@ -366,4 +366,5 @@ router.delete(
   authAdmin,
   AdController.deleteSlider
 );
+
 module.exports = router;

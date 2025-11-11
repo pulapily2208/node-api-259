@@ -44,7 +44,13 @@
                                     <input type="file" name="image" onchange="previewImage(this);">
                                     <br>
                                     <div class="product-preview">
-                                        <img id="image-preview" src="/uploads/products/<%=product.image%>" style="max-width: 100px;">
+                                        <% let editImgSrc = product.image || ''; 
+                                           editImgSrc = editImgSrc.replace(/^\/public\/upload/, '/upload');
+                                           if (editImgSrc && !editImgSrc.startsWith('/upload/')) {
+                                               editImgSrc = '/upload/products/' + editImgSrc.replace(/^\/+/, '');
+                                           }
+                                        %>
+                                        <img id="image-preview" src="<%= editImgSrc %>" style="max-width: 100px;" alt="<%= product.name %>" onerror="this.src='/static/admin/img/placeholder.png'">
                                     </div>
                                 </div>
                                 <div class="form-group">

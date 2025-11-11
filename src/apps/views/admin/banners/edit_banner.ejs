@@ -44,9 +44,14 @@
                             <tr>
                                 <th style="width:200px;">Ảnh hiện tại</th>
                                 <td>
-                                    <% if (ad.image) { %>
-                                    <img src="/uploads/ads/<%= ad.image %>"
-                                        style="max-width:300px; max-height:150px; margin-bottom: 10px;">
+                                    <% if (ad.image) { 
+                                           let curAdImg = ad.image.replace(/^\/public\/upload/, '/upload');
+                                           if (curAdImg && !curAdImg.startsWith('/upload/')) {
+                                               curAdImg = '/upload/ads/' + curAdImg.replace(/^\/+/, '');
+                                           }
+                                        %>
+                                    <img src="<%= curAdImg %>"
+                                        style="max-width:300px; max-height:150px; margin-bottom: 10px;" alt="Ad Image" onerror="this.src='/static/admin/img/placeholder.png'">
                                     <% } %>
                                 </td>
                             </tr>
@@ -66,6 +71,15 @@
                                         class="form-control"
                                         placeholder="https://example.com"
                                         value="<%= ad.url %>">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Loại</th>
+                                <td>
+                                    <select name="type" class="form-control" required>
+                                        <option value="banner" <%=  ad.type == 'banner' ? "selected" : '' %> >Banner</option>
+                                        <option value="slider" <%=  ad.type == 'slider' ? "selected" : '' %> >Slider</option>
+                                    </select>
                                 </td>
                             </tr>
                             <tr>

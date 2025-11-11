@@ -58,7 +58,7 @@
                                         <td style=""><%= product.name %></td>
                                         <td style=""><%= product.price.toLocaleString('vi-VN') %> VNĐ</td>
                                         <td style="">
-                                            <img width="130" height="180" src="/uploads/products/<%=product.image%>" />
+                                            <img width="130" height="180" src="<%= product.image %>" alt="<%= product.name %>" />
                                         </td>
                                         <td style=""><%= product.category_id || 'Không xác định' %></td> 
                                         <td style="">

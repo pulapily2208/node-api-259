@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const config = require("config");
 module.exports = () => {
+  // Prepare for Mongoose 7 default (strictQuery will default to false)
+  // Explicitly setting it avoids the deprecation warning and makes behavior clear.
+  mongoose.set('strictQuery', false);
   mongoose.set('bufferCommands', false);
   mongoose
     .connect(config.get("db.mongo.uri"), {

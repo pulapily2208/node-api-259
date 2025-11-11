@@ -28,7 +28,17 @@
                 <i class="glyphicon glyphicon-plus"></i> Thêm quảng cáo
             </a>
         </div>
-
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mt-3 border ms-4 me-4">
+            <li class="<%= type == '' ?  'active' : '' %>"><a data-toggle="tab"
+                    href="/admin/banners">Tất cả</a></li>
+            <li class="<%= type == 'banner' ?  'active' : '' %>"><a
+                    data-toggle="tab"
+                    href="/admin/banners?type=banner">Banner</a></li>
+            <li class="<%= type == 'slider' ?  'active' : '' %>"><a
+                    data-toggle="tab"
+                    href="/admin/banners?type=slider">Slider</a></li>
+        </ul>
         <div class="panel-body tab-content">
             <!-- Tất cả -->
             <div id="all" class="tab-pane fade in active">
@@ -41,6 +51,7 @@
                             <th class="text-center" style="width: 5%">ID</th>
                             <th class="text-center" style="width: 35%">Ảnh</th>
                             <th class="text-center" style="width: 20%">Link</th>
+                            <th class="text-center" style="width: 20%">Loại</th>
                             <th class="text-center" style="width: 8%">Vị
                                 trí</th>
                             <th class="text-center" style="width: 12%">Trạng
@@ -56,12 +67,21 @@
                                 <%= index + 1 %>
                             </td>
                             <td class="text-center">
-                                <img src="/uploads/ads/<%= ad.image %>"
-                                    style="max-width:200px; max-height:100px;">
+                                <% let adImgSrc = ad.image || ''; 
+                                   adImgSrc = adImgSrc.replace(/^\/public\/upload/, '/upload');
+                                   if (adImgSrc && !adImgSrc.startsWith('/upload/')) {
+                                       adImgSrc = '/upload/ads/' + adImgSrc.replace(/^\/+/, '');
+                                   }
+                                %>
+                                <img src="<%= adImgSrc %>"
+                                    style="max-width:200px; max-height:100px;" alt="Ad Image" onerror="this.src='/static/admin/img/placeholder.png'">
                             </td>
                             <td><a href="<%= ad.link %>" target="_blank">
                                     <%= ad.link %>
                                 </a></td>
+                            <td class="text-center">
+                                <%= ad.type==='banner' ? "Banner" : "Slider" %>
+                            </td>
                             <td class="text-center">
                                 <%= ad.position%>
                             </td>
