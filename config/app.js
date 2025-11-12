@@ -5,12 +5,12 @@ module.exports = {
   jwtRefreshKey: process.env.JWT_REFRESH_KEY || "vietpro_refresh_key",
   jwtResetKey: process.env.JWT_RESET_KEY || "vietpro_reset_key_strong_secret",
   // KHÓA CHO GOOGLE OAUTH
-  googleClientID: process.env.GOOGLE_CLIENT_ID ,
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  googleClientID: process.env.GOOGLE_CLIENT_ID || "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
 
   // KHÓA CHO FACEBOOK OAUTH
-  facebookClientID: process.env.FACEBOOK_CLIENT_ID ,
-  facebookClientSecret: process.env.FACEBOOK_CLIENT_SECRET ,
+  facebookClientID: process.env.FACEBOOK_CLIENT_ID || "",
+  facebookClientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
   
   sessionSecret: process.env.SESSION_SECRET || "vietpro_session_secret_key_default",
 };

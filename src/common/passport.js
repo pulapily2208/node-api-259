@@ -5,18 +5,19 @@ const config = require('config');
 const CustomerModel = require('../apps/models/customer'); // Dùng Customer Model
 
 // Cấu hình dựa trên biến trong config/app.js
-const GOOGLE_CONFIG = config.get('app.googleClientID') ? {
-    clientID: config.get('app.googleClientID'),
-    clientSecret: config.get('app.googleClientSecret'),
+const appConfig = config.get('app');
+const GOOGLE_CONFIG = appConfig.googleClientID ? {
+    clientID: appConfig.googleClientID,
+    clientSecret: appConfig.googleClientSecret,
     // URI chuyển hướng đã đăng ký ở Google Console
     callbackURL: "/auth/google/callback", 
     scope: ['profile', 'email'],
 } : null;
 
 // Cấu hình Facebook
-const FACEBOOK_CONFIG = config.get('app.facebookClientID') ? {
-    clientID: config.get('app.facebookClientID'),
-    clientSecret: config.get('app.facebookClientSecret'),
+const FACEBOOK_CONFIG = appConfig.facebookClientID ? {
+    clientID: appConfig.facebookClientID,
+    clientSecret: appConfig.facebookClientSecret,
     callbackURL: "/auth/facebook/callback",
     profileFields: ['id', 'displayName', 'emails', 'photos'],
 } : null;
