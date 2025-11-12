@@ -1,0 +1,70 @@
+<%-include("layout/head")%>
+<%-include("layout/header")%>
+<%-include("layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+  <div class="row">
+    <ol class="breadcrumb mt-3">
+      <li>
+        <a href="/admin">
+          <svg class="glyph stroked home"><use xlink:href="#stroked-home"></use></svg>
+        </a>
+      </li>
+      <li class="active">Tài khoản</li>
+    </ol>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <h1 class="page-header">Thông tin tài khoản</h1>
+    </div>
+  </div>
+
+  <% if (success) { %>
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <%= success %>
+    </div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <%= error %>
+    </div>
+  <% } %>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="panel panel-default">
+        <div class="panel-heading">Tài khoản đăng nhập</div>
+        <div class="panel-body">
+          <dl class="dl-horizontal">
+            <dt>Email</dt>
+            <dd><%= user && user.email ? user.email : '—' %></dd>
+            <dt>Vai trò</dt>
+            <dd>
+              <% if (user && user.role) { %>
+                <span class="label label-<%= user.role === 'admin' ? 'primary' : 'default' %>"><%= user.role %></span>
+              <% } else { %>
+                —
+              <% } %>
+            </dd>
+            <dt>User ID</dt>
+            <dd><%= user && user._id ? user._id : '—' %></dd>
+          </dl>
+          <hr>
+          <a href="/logout" class="btn btn-danger"><i class="glyphicon glyphicon-log-out"></i> Đăng xuất</a>
+          <a href="/admin" class="btn btn-default"><i class="glyphicon glyphicon-home"></i> Về trang quản trị</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<%-include("layout/footer")%>

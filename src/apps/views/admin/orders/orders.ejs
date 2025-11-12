@@ -1,0 +1,119 @@
+<%-include("../layout/head")%>
+<%-include("../layout/header")%>
+<%-include("../layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+  <div class="row">
+    <ol class="breadcrumb mt-3">
+      <li>
+        <a href="/admin"><svg class="glyph stroked home"><use xlink:href="#stroked-home"></use></svg></a>
+      </li>
+      <li class="active">Quản lý đơn hàng</li>
+    </ol>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <h1 class="page-header">Đơn hàng</h1>
+    </div>
+  </div>
+
+  <% if (success && typeof success === 'string' && success.trim().length) { %>
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <%= success %>
+    </div>
+  <% } %>
+  <% if (error && typeof error === 'string' && error.trim().length) { %>
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <%= error %>
+    </div>
+  <% } %>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <form class="form-inline" method="get" action="/admin/orders" style="display:flex; gap:10px; align-items:center;">
+            <select name="status" class="form-control">
+              <option value="all" <%= currentStatus==='all' ? 'selected' : '' %>>Tất cả</option>
+              <option value="pending" <%= currentStatus==='pending' ? 'selected' : '' %>>Chờ xác nhận</option>
+              <option value="confirmed" <%= currentStatus==='confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+              <option value="shipping" <%= currentStatus==='shipping' ? 'selected' : '' %>>Đang giao</option>
+              <option value="delivered" <%= currentStatus==='delivered' ? 'selected' : '' %>>Đã giao</option>
+              <option value="canceled" <%= currentStatus==='canceled' ? 'selected' : '' %>>Đã hủy</option>
+            </select>
+            <input type="text" name="search" class="form-control" placeholder="Tìm email/phone/ID" value="<%= search %>">
+            <button class="btn btn-primary"><i class="glyphicon glyphicon-search"></i> Lọc</button>
+          </form>
+        </div>
+        <div class="panel-body">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>Mã đơn</th>
+                <th>Email</th>
+                <th>Điện thoại</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th style="width:150px">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+            <% if (orders && orders.length) { %>
+              <% orders.forEach(o => { %>
+                <tr>
+                  <td><code><%= o._id %></code></td>
+                  <td><%= o.email %></td>
+                  <td><%= o.phone %></td>
+                  <td><%= o.totalPrice.toLocaleString('vi-VN') %> đ</td>
+                  <td>
+                    <% if (o.status==='pending') { %>
+                      <span class="label label-warning">Chờ xác nhận</span>
+                    <% } else if (o.status==='confirmed') { %>
+                      <span class="label label-info">Đã xác nhận</span>
+                    <% } else if (o.status==='shipping') { %>
+                      <span class="label label-primary">Đang giao</span>
+                    <% } else if (o.status==='delivered') { %>
+                      <span class="label label-success">Đã giao</span>
+                    <% } else if (o.status==='canceled') { %>
+                      <span class="label label-default">Đã hủy</span>
+                    <% } %>
+                  </td>
+                  <td><%= new Date(o.createdAt).toLocaleString('vi-VN') %></td>
+                  <td>
+                    <a href="/admin/orders/detail/<%= o._id %>" class="btn btn-xs btn-default"><i class="glyphicon glyphicon-eye-open"></i></a>
+                    <a href="/admin/orders/delete/<%= o._id %>" class="btn btn-xs btn-danger" onclick="return confirm('Xóa đơn hàng này?')"><i class="glyphicon glyphicon-trash"></i></a>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="7" class="text-center text-muted">Không có đơn hàng</td></tr>
+            <% } %>
+            </tbody>
+          </table>
+
+          <% if (paginate && paginate.length > 1) { %>
+            <ul class="pagination">
+              <li class="<%= page<=1 ? 'disabled' : '' %>"><a href="/admin/orders?page=<%= prev %>&status=<%= currentStatus %>&search=<%= encodeURIComponent(search||'') %>">&laquo;</a></li>
+              <% paginate.forEach(p => { %>
+                <% if (p==='...') { %>
+                  <li class="disabled"><a href="#">&hellip;</a></li>
+                <% } else { %>
+                  <li class="<%= p===page ? 'active' : '' %>"><a href="/admin/orders?page=<%= p %>&status=<%= currentStatus %>&search=<%= encodeURIComponent(search||'') %>"><%= p %></a></li>
+                <% } %>
+              <% }) %>
+              <li class="<%= page>=totalPages ? 'disabled' : '' %>"><a href="/admin/orders?page=<%= next %>&status=<%= currentStatus %>&search=<%= encodeURIComponent(search||'') %>">&raquo;</a></li>
+            </ul>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<%-include("../layout/footer")%>

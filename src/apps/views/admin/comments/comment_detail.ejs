@@ -6,13 +6,13 @@
     <div class="row">
         <ol class="breadcrumb mt-3">
             <li>
-                <a href="/api/admin/dashboard">
+                <a href="/admin">
                     <svg class="glyph stroked home">
                         <use xlink:href="#stroked-home"></use>
                     </svg>
                 </a>
             </li>
-            <li><a href="/api/admin/comments">Danh sách bình luận</a></li>
+            <li><a href="/admin/comments">Danh sách bình luận</a></li>
             <li class="active">Chi tiết bình luận</li>
         </ol>
     </div><!--/.row-->
@@ -22,6 +22,24 @@
             <h1 class="page-header">Chi tiết bình luận</h1>
         </div>
     </div><!--/.row-->
+
+    <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= success %>
+        </div>
+    <% } %>
+
+    <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= error %>
+        </div>
+    <% } %>
 
     <div class="row">
         <div class="col-lg-8">
@@ -41,7 +59,7 @@
                         </tr>
                         <tr>
                             <th>Nội dung bình luận</th>
-                            <td><%= comment.content || comment.description || '' %></td>
+                            <td style="white-space: pre-wrap;"><%= comment.displayContent || comment.content || comment.description || '' %></td>
                         </tr>
                         <tr>
                             <th>Trạng thái</th>
@@ -97,7 +115,7 @@
                                 <td><%= (comment.product_id.price || 0).toLocaleString('vi-VN') %> đ</td>
                             </tr>
                         </table>
-                        <a href="/api/admin/products/detail/<%= comment.product_id._id %>" class="btn btn-info btn-block">
+                        <a href="/admin/products/detail/<%= comment.product_id._id %>" class="btn btn-info btn-block">
                             <i class="glyphicon glyphicon-eye-open"></i> Xem sản phẩm
                         </a>
                     <% } else { %>
@@ -111,19 +129,23 @@
                     <h3 class="panel-title">Hành động</h3>
                 </div>
                 <div class="panel-body">
-                    <div class="btn-group-vertical btn-block">
-                        <button type="button" class="btn btn-success" id="approveBtn">
-                            <i class="glyphicon glyphicon-ok"></i> Duyệt bình luận
-                        </button>
-                        <button type="button" class="btn btn-warning" id="pendingBtn">
-                            <i class="glyphicon glyphicon-time"></i> Chờ duyệt
-                        </button>
-                        <a href="/api/admin/comments/delete/<%= comment._id %>" 
+                    <form action="/admin/comments/update/<%= comment._id %>" method="POST" style="margin: 0;">
+                        <div class="btn-group-vertical btn-block">
+                            <button type="submit" name="status" value="approved" class="btn btn-success">
+                                <i class="glyphicon glyphicon-ok"></i> Duyệt bình luận
+                            </button>
+                            <button type="submit" name="status" value="pending" class="btn btn-warning">
+                                <i class="glyphicon glyphicon-time"></i> Chờ duyệt
+                            </button>
+                        </div>
+                    </form>
+                    <div class="btn-group-vertical btn-block" style="margin-top: 10px;">
+                        <a href="/admin/comments/delete/<%= comment._id %>" 
                            class="btn btn-danger" 
                            onclick="return confirm('Bạn có chắc muốn xóa bình luận này?');">
                             <i class="glyphicon glyphicon-trash"></i> Xóa bình luận
                         </a>
-                        <a href="/api/admin/comments" class="btn btn-default">
+                        <a href="/admin/comments" class="btn btn-default">
                             <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
                         </a>
                     </div>
@@ -135,39 +157,4 @@
 
 <script src="/admin/js/jquery-1.11.1.min.js"></script>
 <script src="/admin/js/bootstrap.min.js"></script>
-<script>
-$(document).ready(function() {
-    $('#approveBtn').on('click', function() {
-        updateCommentStatus('approved');
-    });
-
-    $('#pendingBtn').on('click', function() {
-        updateCommentStatus('pending');
-    });
-
-    function updateCommentStatus(status) {
-        $.ajax({
-            url: '/api/comments/<%= comment._id %>/status',
-            method: 'PATCH',
-            contentType: 'application/json',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
-            },
-            data: JSON.stringify({ status: status }),
-            success: function(response) {
-                if (response.success) {
-                    alert('Cập nhật trạng thái thành công!');
-                    location.reload();
-                } else {
-                    alert('Có lỗi xảy ra: ' + response.message);
-                }
-            },
-            error: function(xhr) {
-                alert('Có lỗi xảy ra khi cập nhật trạng thái');
-                console.error(xhr);
-            }
-        });
-    }
-});
-</script>
 <%-include("../layout/footer")%>

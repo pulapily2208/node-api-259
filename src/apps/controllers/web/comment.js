@@ -1,6 +1,6 @@
 const CommentModel = require("../../models/comment");
 const ProductModel = require("../../models/product");
-const viewPagination = require("../../../libs/view.pagination");
+const { buildCompactPagination } = require("../../../libs/view.pagination");
 
 // Hàm lọc từ thô tục để hiển thị
 const PROHIBITED_WORDS = [
@@ -50,7 +50,7 @@ exports.list = async (req, res) => {
     });
 
     const totalPages = Math.ceil(total / limit);
-    const paginate = viewPagination(page, totalPages);
+    const paginate = buildCompactPagination(totalPages, page);
 
     res.render("admin/comments/comments", {
       title: "Danh sách bình luận",
@@ -60,11 +60,14 @@ exports.list = async (req, res) => {
       paginate,
       prev: page > 1 ? page - 1 : 1,
       next: page < totalPages ? page + 1 : totalPages,
-      currentStatus: req.query.status || "all"
+      currentStatus: req.query.status || "all",
+      success: req.flash('success'),
+      error: req.flash('error')
     });
   } catch (error) {
     console.error("Error listing comments:", error);
-    res.status(500).send("Internal server error");
+    console.error("Error stack:", error.stack);
+    res.status(500).send("Internal server error: " + error.message);
   }
 };
 
@@ -82,50 +85,13 @@ exports.detail = async (req, res) => {
 
     res.render("admin/comments/comment_detail", {
       title: "Chi tiết bình luận",
-      comment: commentObj
+      comment: commentObj,
+      success: req.flash('success'),
+      error: req.flash('error')
     });
   } catch (error) {
     console.error("Error getting comment detail:", error);
     res.status(500).send("Internal server error");
-  }
-};
-
-exports.showCreate = async (req, res) => {
-  try {
-    const products = await ProductModel.find({}).select("name");
-    res.render("admin/comments/add_comment", {
-      title: "Thêm bình luận",
-      products,
-      error: null
-    });
-  } catch (error) {
-    console.error("Error showing create form:", error);
-    res.status(500).send("Internal server error");
-  }
-};
-
-exports.create = async (req, res) => {
-  try {
-    const { product_id, name, email, content, status } = req.body;
-
-    const newComment = await CommentModel.create({
-      product_id,
-      name,
-      email,
-      content,
-      status: status || "pending"
-    });
-
-    req.flash("success", "Thêm bình luận thành công!");
-    res.redirect("/api/admin/comments");
-  } catch (error) {
-    console.error("Error creating comment:", error);
-    const products = await ProductModel.find({}).select("name");
-    res.render("admin/comments/add_comment", {
-      title: "Thêm bình luận",
-      products,
-      error: "Có lỗi xảy ra khi thêm bình luận"
-    });
   }
 };
 
@@ -134,6 +100,11 @@ exports.updateStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    if (!status || !['pending', 'approved'].includes(status)) {
+      req.flash("error", "Trạng thái không hợp lệ");
+      return res.redirect(`/admin/comments/detail/${id}`);
+    }
+
     const comment = await CommentModel.findByIdAndUpdate(
       id,
       { status },
@@ -141,23 +112,16 @@ exports.updateStatus = async (req, res) => {
     );
 
     if (!comment) {
-      return res.status(404).json({
-        success: false,
-        message: "Comment not found"
-      });
+      req.flash("error", "Không tìm thấy bình luận");
+      return res.redirect("/admin/comments");
     }
 
-    res.json({
-      success: true,
-      message: "Cập nhật trạng thái thành công",
-      data: comment
-    });
+    req.flash("success", `Đã cập nhật trạng thái thành ${status === 'approved' ? 'Đã duyệt' : 'Chờ duyệt'}`);
+    res.redirect(`/admin/comments/detail/${id}`);
   } catch (error) {
     console.error("Error updating comment status:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error"
-    });
+    req.flash("error", "Có lỗi xảy ra khi cập nhật trạng thái");
+    res.redirect("/admin/comments");
   }
 };
 
@@ -171,10 +135,10 @@ exports.delete = async (req, res) => {
     }
 
     req.flash("success", "Xóa bình luận thành công!");
-    res.redirect("/api/admin/comments");
+    res.redirect("/admin/comments");
   } catch (error) {
     console.error("Error deleting comment:", error);
     req.flash("error", "Có lỗi xảy ra khi xóa bình luận");
-    res.redirect("/api/admin/comments");
+    res.redirect("/admin/comments");
   }
 };

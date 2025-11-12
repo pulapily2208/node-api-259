@@ -9,6 +9,7 @@ const session = require('express-session');
 const passport = require('../common/passport');
 const flash = require('connect-flash'); 
 const app = express();
+const SettingModel = require("./models/setting");
 
 // Cấu hình CORS
 app.use(cors({
@@ -41,6 +42,34 @@ app.use(session({
 app.use(flash());
 
 
+// Inject global settings (logo, footer, etc.) into all views
+app.use(async (req, res, next) => {
+    try {
+        let setting = await SettingModel.findOne().lean();
+        if (!setting) {
+            setting = {
+                shop_name: "Vietpro Shop",
+                thumbnail_logo: "logo/default-logo.png",
+                description: "",
+                copyright: "© 2025 MyWebsite. All rights reserved."
+            };
+        }
+        res.locals.setting = setting;
+    } catch (e) {
+        // Fallback defaults if database query fails
+        res.locals.setting = {
+            shop_name: "Vietpro Shop",
+            thumbnail_logo: "logo/default-logo.png",
+            description: "",
+            copyright: "© 2025 MyWebsite. All rights reserved."
+        };
+    }
+    // Inject current URL for active menu highlighting
+    res.locals.currentUrl = req.path;
+    next();
+});
+
+
 app.use((req, res, next) => {
     const ct = req.headers['content-type'] || req.headers['Content-Type'];
     if (ct && typeof ct === 'string' && ct.indexOf('multipart/form-data') === 0) {
@@ -65,6 +94,8 @@ app.use(passport.session());
 const PUBLIC_ROOT = path.join(__dirname, '../public');
 app.use('/public', express.static(PUBLIC_ROOT));
 app.use('/static', express.static(PUBLIC_ROOT));
+app.use('/static/admin', express.static(path.join(PUBLIC_ROOT, 'admin')));
+app.use('/admin', express.static(path.join(PUBLIC_ROOT, 'admin')));
 app.use('/upload', express.static(path.join(PUBLIC_ROOT, 'upload')));
 // Backward-compat alias for legacy templates that used "/uploads"
 app.use('/uploads', express.static(path.join(PUBLIC_ROOT, 'upload')));

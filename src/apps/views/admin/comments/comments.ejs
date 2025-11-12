@@ -6,7 +6,7 @@
     <div class="row">
         <ol class="breadcrumb mt-3">
             <li>
-                <a href="/api/admin/dashboard">
+                <a href="/admin">
                     <svg class="glyph stroked home">
                         <use xlink:href="#stroked-home"></use>
                     </svg>
@@ -24,7 +24,7 @@
         </div>
     </div><!--/.row-->
 
-    <% if (typeof success !== 'undefined' && success) { %>
+    <% if (success && typeof success === 'string' && success.trim().length > 0) { %>
         <div class="alert alert-success alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -33,7 +33,7 @@
         </div>
     <% } %>
 
-    <% if (typeof error !== 'undefined' && error) { %>
+    <% if (error && typeof error === 'string' && error.trim().length > 0) { %>
         <div class="alert alert-danger alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -47,13 +47,13 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <div class="btn-group" role="group">
-                        <a href="/api/admin/comments" class="btn btn-default <%= currentStatus === 'all' ? 'active' : '' %>">
+                        <a href="/admin/comments" class="btn btn-default <%= currentStatus === 'all' ? 'active' : '' %>">
                             Tất cả
                         </a>
-                        <a href="/api/admin/comments?status=pending" class="btn btn-default <%= currentStatus === 'pending' ? 'active' : '' %>">
+                        <a href="/admin/comments?status=pending" class="btn btn-default <%= currentStatus === 'pending' ? 'active' : '' %>">
                             Chờ duyệt
                         </a>
-                        <a href="/api/admin/comments?status=approved" class="btn btn-default <%= currentStatus === 'approved' ? 'active' : '' %>">
+                        <a href="/admin/comments?status=approved" class="btn btn-default <%= currentStatus === 'approved' ? 'active' : '' %>">
                             Đã duyệt
                         </a>
                     </div>
@@ -89,25 +89,28 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<%= comment.content || comment.description || '' %>">
-                                                <%= comment.content || comment.description || '' %>
+                                            <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<%= comment.displayContent || comment.content || comment.description || '' %>">
+                                                <%= comment.displayContent || comment.content || comment.description || '' %>
                                             </div>
                                         </td>
                                         <td>
-                                            <select class="form-control status-select" data-comment-id="<%= comment._id %>" style="width:auto;">
-                                                <option value="pending" <%= comment.status === 'pending' ? 'selected' : '' %>>Chờ duyệt</option>
-                                                <option value="approved" <%= comment.status === 'approved' || comment.status === 'active' ? 'selected' : '' %>>Đã duyệt</option>
-                                            </select>
+                                            <% if (comment.status === 'pending') { %>
+                                                <span class="label label-warning">Chờ duyệt</span>
+                                            <% } else if (comment.status === 'approved' || comment.status === 'active') { %>
+                                                <span class="label label-success">Đã duyệt</span>
+                                            <% } else { %>
+                                                <span class="label label-default"><%= comment.status %></span>
+                                            <% } %>
                                         </td>
                                         <td>
                                             <%= new Date(comment.createdAt).toLocaleDateString('vi-VN') %><br>
                                             <small><%= new Date(comment.createdAt).toLocaleTimeString('vi-VN') %></small>
                                         </td>
                                         <td class="form-group">
-                                            <a href="/api/admin/comments/detail/<%= comment._id %>" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                            <a href="/admin/comments/detail/<%= comment._id %>" class="btn btn-info btn-sm" title="Xem chi tiết">
                                                 <i class="glyphicon glyphicon-eye-open"></i>
                                             </a>
-                                            <a href="/api/admin/comments/delete/<%= comment._id %>" class="btn btn-danger btn-sm"
+                                            <a href="/admin/comments/delete/<%= comment._id %>" class="btn btn-danger btn-sm"
                                                 onclick="return confirm('Bạn có chắc muốn xóa bình luận này không?');" title="Xóa">
                                                 <i class="glyphicon glyphicon-trash"></i>
                                             </a>
@@ -124,14 +127,14 @@
                         <ul class="pagination">
                             <!-- Nút Previous -->
                             <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
-                                <a class="page-link" href="/api/admin/comments?page=<%= prev %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">&laquo;</a>
+                                <a class="page-link" href="/admin/comments?page=<%= prev %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">&laquo;</a>
                             </li>
                             <% for (let pageNumber of paginate) { %>
                                 <% if (pageNumber==="..." ) { %>
                                     <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
                                 <% } else { %>
                                     <li class="page-item <%= page === pageNumber ? 'active' : '' %>">
-                                        <a class="page-link" href="/api/admin/comments?page=<%= pageNumber %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">
+                                        <a class="page-link" href="/admin/comments?page=<%= pageNumber %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">
                                             <%= pageNumber %>
                                         </a>
                                     </li>
@@ -139,7 +142,7 @@
                             <% } %>
                             <!-- Nút Next -->
                             <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
-                                <a class="page-link" href="/api/admin/comments?page=<%= next %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">&raquo;</a>
+                                <a class="page-link" href="/admin/comments?page=<%= next %><%= currentStatus !== 'all' ? '&status=' + currentStatus : '' %>">&raquo;</a>
                             </li>
                         </ul>
                     </nav>
@@ -152,33 +155,4 @@
 <script src="/admin/js/jquery-1.11.1.min.js"></script>
 <script src="/admin/js/bootstrap.min.js"></script>
 <script src="/admin/js/bootstrap-table.js"></script>
-<script>
-$(document).ready(function() {
-    $('.status-select').on('change', function() {
-        const commentId = $(this).data('comment-id');
-        const newStatus = $(this).val();
-        
-        $.ajax({
-            url: `/api/comments/${commentId}/status`,
-            method: 'PATCH',
-            contentType: 'application/json',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
-            },
-            data: JSON.stringify({ status: newStatus }),
-            success: function(response) {
-                if (response.success) {
-                    alert('Cập nhật trạng thái thành công!');
-                } else {
-                    alert('Có lỗi xảy ra: ' + response.message);
-                }
-            },
-            error: function(xhr) {
-                alert('Có lỗi xảy ra khi cập nhật trạng thái');
-                console.error(xhr);
-            }
-        });
-    });
-});
-</script>
 <%-include("../layout/footer")%>

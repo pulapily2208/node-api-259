@@ -1,0 +1,163 @@
+<%-include("../layout/head")%>
+<%-include("../layout/header")%>
+<%-include("../layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+    <div class="row">
+        <ol class="breadcrumb mt-3">
+            <li>
+                <a href="/admin">
+                    <svg class="glyph stroked home">
+                        <use xlink:href="#stroked-home"></use>
+                    </svg>
+                </a>
+            </li>
+            <li class="active">Danh sách thành viên</li>
+        </ol>
+    </div><!--/.row-->
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                Danh sách thành viên
+                <a href="/admin/users/create" class="btn btn-success btn-sm">
+                    <i class="glyphicon glyphicon-plus"></i> Thêm thành viên
+                </a>
+            </h1>
+        </div>
+    </div><!--/.row-->
+
+    <% if (success && success.length > 0) { %>
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= success %>
+        </div>
+    <% } %>
+
+    <% if (error && error.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= error %>
+        </div>
+    <% } %>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <form action="/admin/users" method="GET" class="form-inline">
+                        <div class="form-group">
+                            <select name="role" class="form-control">
+                                <option value="all" <%= roleFilter === 'all' ? 'selected' : '' %>>Tất cả vai trò</option>
+                                <option value="admin" <%= roleFilter === 'admin' ? 'selected' : '' %>>Admin</option>
+                                <option value="member" <%= roleFilter === 'member' ? 'selected' : '' %>>Member</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="search" class="form-control" placeholder="Tìm theo email..." value="<%= search %>">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="glyphicon glyphicon-search"></i> Tìm kiếm
+                        </button>
+                        <% if (search || roleFilter !== 'all') { %>
+                            <a href="/admin/users" class="btn btn-default">
+                                <i class="glyphicon glyphicon-remove"></i> Xóa bộ lọc
+                            </a>
+                        <% } %>
+                    </form>
+                </div>
+                <div class="panel-body">
+                    <table data-toolbar="#toolbar" data-toggle="table" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">STT</th>
+                                <th style="width:300px;">Email</th>
+                                <th style="width:100px;">Vai trò</th>
+                                <th style="width:150px;">Ngày tạo</th>
+                                <th style="width:150px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (users.length === 0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center">Không có thành viên nào</td>
+                                </tr>
+                            <% } else { %>
+                                <% users.forEach((user, index)=> { %>
+                                    <tr>
+                                        <td><%= (page - 1) * 10 + index + 1 %></td>
+                                        <td><%= user.email %></td>
+                                        <td>
+                                            <% if (user.role === 'admin') { %>
+                                                <span class="label label-danger">Admin</span>
+                                            <% } else { %>
+                                                <span class="label label-primary">Member</span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <%= new Date(user.createdAt).toLocaleDateString('vi-VN') %><br>
+                                            <small><%= new Date(user.createdAt).toLocaleTimeString('vi-VN') %></small>
+                                        </td>
+                                        <td class="form-group">
+                                            <a href="/admin/users/detail/<%= user._id %>" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                                <i class="glyphicon glyphicon-eye-open"></i>
+                                            </a>
+                                            <a href="/admin/users/edit/<%= user._id %>" class="btn btn-primary btn-sm" title="Chỉnh sửa">
+                                                <i class="glyphicon glyphicon-edit"></i>
+                                            </a>
+                                            <a href="/admin/users/delete/<%= user._id %>" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Bạn có chắc muốn xóa thành viên này không?');" title="Xóa">
+                                                <i class="glyphicon glyphicon-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel-footer">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <% 
+                            const params = [];
+                            if (search) params.push('search=' + search);
+                            if (roleFilter && roleFilter !== 'all') params.push('role=' + roleFilter);
+                            const queryString = params.length > 0 ? '&' + params.join('&') : '';
+                            %>
+                            <!-- Nút Previous -->
+                            <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/admin/users?page=<%= prev %><%= queryString %>">&laquo;</a>
+                            </li>
+                            <% for (let pageNumber of paginate) { %>
+                                <% if (pageNumber==="..." ) { %>
+                                    <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                                <% } else { %>
+                                    <li class="page-item <%= page === pageNumber ? 'active' : '' %>">
+                                        <a class="page-link" href="/admin/users?page=<%= pageNumber %><%= queryString %>">
+                                            <%= pageNumber %>
+                                        </a>
+                                    </li>
+                                <% } %>
+                            <% } %>
+                            <!-- Nút Next -->
+                            <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/admin/users?page=<%= next %><%= queryString %>">&raquo;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div><!--/.row-->
+</div><!--/.main-->
+
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<script src="/admin/js/bootstrap-table.js"></script>
+<%-include("../layout/footer")%>

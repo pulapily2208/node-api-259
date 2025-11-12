@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../libs/upload");
+const passport = require("../common/passport");
 const AdminController = require("../apps/controllers/web/admin");
 const AuthController = require("../apps/controllers/web/auth");
 const { requireLogin, attachAuthHeaders, webLoginRules, webLoginValidator } = require("../apps/middlewares/webAuth");
@@ -8,6 +9,10 @@ const CategoryController = require("../apps/controllers/web/category");
 const ProductController = require("../apps/controllers/web/product");
 const BannerController = require("../apps/controllers/web/banner");
 const CommentController = require("../apps/controllers/web/comment");
+const CustomerController = require("../apps/controllers/web/customer");
+const UserController = require("../apps/controllers/web/user");
+const SettingController = require("../apps/controllers/web/setting");
+const CustomerAuthController = require("../apps/controllers/apis/customerAuth");
 
 // Import Middleware
 const {
@@ -39,6 +44,33 @@ router.get("/debug-session", (req, res) => {
 router.get("/login", AuthController.loginForm);
 router.post("/login", AuthController.login);
 router.get("/logout", AuthController.logout);
+router.get("/admin/account", requireLogin, AuthController.account);
+
+// --- GOOGLE OAuth Routes ---
+router.get("/auth/google", 
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get("/auth/google/callback",
+    passport.authenticate("google", { 
+        failureRedirect: "/login?error=google_auth_failed",
+        session: true 
+    }),
+    CustomerAuthController.socialLoginCallback
+);
+
+// --- FACEBOOK OAuth Routes ---
+router.get("/auth/facebook", 
+    passport.authenticate("facebook", { scope: ["email"] })
+);
+
+router.get("/auth/facebook/callback",
+    passport.authenticate("facebook", { 
+        failureRedirect: "/login?error=facebook_auth_failed",
+        session: true 
+    }),
+    CustomerAuthController.socialLoginCallback
+);
 
 router.get("/admin", requireLogin, AdminController.index);
 
@@ -129,5 +161,32 @@ router.get("/admin/comments", requireLogin, CommentController.list);
 router.get("/admin/comments/detail/:id", requireLogin, CommentController.detail);
 router.post("/admin/comments/update/:id", requireLogin, CommentController.updateStatus);
 router.get("/admin/comments/delete/:id", requireLogin, CommentController.delete);
+
+// Tuyến quản lý Customer
+router.get("/admin/customers", requireLogin, CustomerController.list);
+router.get("/admin/customers/detail/:id", requireLogin, CustomerController.detail);
+router.get("/admin/customers/edit/:id", requireLogin, CustomerController.showEdit);
+router.post("/admin/customers/update/:id", requireLogin, CustomerController.update);
+router.get("/admin/customers/delete/:id", requireLogin, CustomerController.delete);
+
+// Tuyến quản lý User/Member
+router.get("/admin/users", requireLogin, UserController.list);
+router.get("/admin/users/create", requireLogin, UserController.showCreate);
+router.post("/admin/users/store", requireLogin, UserController.create);
+router.get("/admin/users/detail/:id", requireLogin, UserController.detail);
+router.get("/admin/users/edit/:id", requireLogin, UserController.showEdit);
+router.post("/admin/users/update/:id", requireLogin, UserController.update);
+router.get("/admin/users/delete/:id", requireLogin, UserController.delete);
+
+// Tuyến quản lý Settings
+router.get("/admin/settings", requireLogin, SettingController.showSettings);
+router.post("/admin/settings/update", requireLogin, SettingController.uploadLogo.single("thumbnail_logo"), SettingController.update);
+
+// Tuyến quản lý Orders
+const OrderController = require("../apps/controllers/web/order");
+router.get("/admin/orders", requireLogin, OrderController.list);
+router.get("/admin/orders/detail/:id", requireLogin, OrderController.detail);
+router.post("/admin/orders/update/:id", requireLogin, OrderController.updateStatus);
+router.get("/admin/orders/delete/:id", requireLogin, OrderController.delete);
 
 module.exports = router;

@@ -4,18 +4,49 @@
             <input type="text" class="form-control" placeholder="Search">
         </div>
     </form>
+    <% 
+    const currentPath = typeof currentUrl !== 'undefined' ? currentUrl : '';
+    const isActive = (path) => {
+        if (path === '/admin') return currentPath === '/admin';
+        return currentPath.startsWith(path);
+    };
+    %>
     <ul class="nav menu">
-        <li><a href="/admin"><svg class="glyph stroked dashboard-dial"><use xlink:href="#stroked-dashboard-dial"></use></svg> Dashboard</a></li>
+        <li class="<%= isActive('/admin') ? 'active' : '' %>">
+            <a href="/admin"><svg class="glyph stroked dashboard-dial"><use xlink:href="#stroked-dashboard-dial"></use></svg> Dashboard</a>
+        </li>
         
-        <li><a href="/admin/users"><svg class="glyph stroked male user "><use xlink:href="#stroked-male-user"/></svg>Quản lý thành viên</a></li>
+        <li class="<%= isActive('/admin/users') ? 'active' : '' %>">
+            <a href="/admin/users"><svg class="glyph stroked male user "><use xlink:href="#stroked-male-user"/></svg>Quản lý thành viên</a>
+        </li>
         
-        <li><a href="/admin/categories"><svg class="glyph stroked open folder"><use xlink:href="#stroked-open-folder"/></svg>Quản lý danh mục</a></li>
+        <li class="<%= isActive('/admin/customers') ? 'active' : '' %>">
+            <a href="/admin/customers"><svg class="glyph stroked male user "><use xlink:href="#stroked-male-user"/></svg>Quản lý khách hàng</a>
+        </li>
         
-        <li class="active"><a href="/admin/products"><svg class="glyph stroked bag"><use xlink:href="#stroked-bag"></use></svg>Quản lý sản phẩm</a></li>
+        <li class="<%= isActive('/admin/categories') ? 'active' : '' %>">
+            <a href="/admin/categories"><svg class="glyph stroked open folder"><use xlink:href="#stroked-open-folder"/></svg>Quản lý danh mục</a>
+        </li>
         
-        <li><a href="/admin/comments"><svg class="glyph stroked two messages"><use xlink:href="#stroked-two-messages"/></svg> Quản lý bình luận</a></li>
-        <li><a href="/admin/banners"><svg class="glyph stroked chain"><use xlink:href="#stroked-chain"/></svg> Quản lý quảng cáo</a></li>
-        <li><a href="/admin/settings"><svg class="glyph stroked gear"><use xlink:href="#stroked-gear"/></svg> Cấu hình</a></li>
+        <li class="<%= isActive('/admin/products') ? 'active' : '' %>">
+            <a href="/admin/products"><svg class="glyph stroked bag"><use xlink:href="#stroked-bag"></use></svg>Quản lý sản phẩm</a>
+        </li>
+        
+        <li class="<%= isActive('/admin/orders') ? 'active' : '' %>">
+            <a href="/admin/orders"><svg class="glyph stroked clipboard with paper"><use xlink:href="#stroked-clipboard-with-paper"/></svg> Quản lý đơn hàng</a>
+        </li>
+        
+        <li class="<%= isActive('/admin/comments') ? 'active' : '' %>">
+            <a href="/admin/comments"><svg class="glyph stroked two messages"><use xlink:href="#stroked-two-messages"/></svg> Quản lý bình luận</a>
+        </li>
+        
+        <li class="<%= isActive('/admin/banners') ? 'active' : '' %>">
+            <a href="/admin/banners"><svg class="glyph stroked chain"><use xlink:href="#stroked-chain"/></svg> Quản lý quảng cáo</a>
+        </li>
+        
+        <li class="<%= isActive('/admin/settings') ? 'active' : '' %>">
+            <a href="/admin/settings"><svg class="glyph stroked gear"><use xlink:href="#stroked-gear"/></svg> Cấu hình</a>
+        </li>
     </ul>
 
 </div>

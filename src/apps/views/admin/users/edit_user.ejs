@@ -1,80 +1,112 @@
 <%-include("../layout/head")%>
-    <%-include("../layout/header")%>
-        <%-include("../layout/sidebar")%>
+<%-include("../layout/header")%>
+<%-include("../layout/sidebar")%>
 
-            <div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
-                <div class="row">
-                    <ol class="breadcrumb mt-3">
-                        <li><a href="/api/admin/dashboard"><svg class="glyph stroked home">
-                                    <use xlink:href="#stroked-home"></use>
-                                </svg></a></li>
-                        <li><a href="/api/admin/users">Quản lý thành viên</a></li>
-                        <li class="active">
-                            <%= user.full_name %>
-                        </li>
-                    </ol>
-                </div><!--/.row-->
-            
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">Thành viên: <%= user.full_name %>
-                        </h1>
-                    </div>
-                </div><!--/.row-->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <div class="col-md-8">
-                                    <% if (!success && message) { %>
-                                        <div class="alert alert-danger">
-                                            <%= message %>
-                                        </div>
-                                        <% } %>
-            
-                                            <form action="/api/admin/users/update/<%= user._id %>" role="form" method="post">
-                                                <div class="form-group">
-                                                    <label>Họ & Tên</label>
-                                                    <input type="text" name="full_name" required class="form-control"
-                                                        value="<%= oldData.full_name || user.full_name %>">
-            
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Email</label>
-                                                    <input type="text" name="email" required class="form-control"
-                                                        value="<%= oldData.email || user.email %>">
-            
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Mật khẩu</label>
-                                                    <input type="password" name="password" class="form-control"
-                                                        value="<%= oldData.password  %>">
-            
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Nhập lại mật khẩu</label>
-                                                    <input type="password" name="re_password" class="form-control"
-                                                        value="<%= oldData.re_password %>">
-            
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Quyền</label>
-                                                    <select name="role" class="form-control">
-                                                        <option value="1" <%=(oldData.role=='admin' || user.role=='admin') ? 'selected' : '' %>
-                                                            >Admin</option>
-                                                        <option value="2" <%=(oldData.role=='member' || user.role=='member') ? 'selected' : '' %>
-                                                            >Member</option>
-                                                    </select>
-            
-                                                </div>
-                                                <button type="submit" name="sbm" class="btn btn-primary">Cập nhật</button>
-                                                <button type="reset" class="btn btn-default">Làm mới</button>
-                                </div>
-                                </form>
-                            </div>
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+    <div class="row">
+        <ol class="breadcrumb mt-3">
+            <li>
+                <a href="/admin">
+                    <svg class="glyph stroked home">
+                        <use xlink:href="#stroked-home"></use>
+                    </svg>
+                </a>
+            </li>
+            <li><a href="/admin/users">Danh sách thành viên</a></li>
+            <li class="active">Chỉnh sửa thành viên</li>
+        </ol>
+    </div><!--/.row-->
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Chỉnh sửa thành viên: <%= user.email %></h1>
+        </div>
+    </div><!--/.row-->
+
+    <% if (error) { %>
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= error %>
+        </div>
+    <% } %>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Thông tin thành viên</h3>
+                </div>
+                <div class="panel-body">
+                    <form action="/admin/users/update/<%= user._id %>" method="POST">
+                        
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="email">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" id="email" class="form-control" 
+                                   value="<%= user.email %>" required>
                         </div>
-                    </div><!-- /.col-->
-                </div><!-- /.row -->
-            
-            </div> <!--/.main-->
-            <%-include("../layout/footer")%>
+
+                        <!-- Mật khẩu mới (tùy chọn) -->
+                        <div class="form-group">
+                            <label for="password">Mật khẩu mới (để trống nếu không đổi)</label>
+                            <input type="password" name="password" id="password" class="form-control" 
+                                   placeholder="Tối thiểu 6 ký tự">
+                            <small class="help-block">Chỉ nhập nếu muốn thay đổi mật khẩu</small>
+                        </div>
+
+                        <!-- Xác nhận mật khẩu -->
+                        <div class="form-group">
+                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" 
+                                   placeholder="Nhập lại mật khẩu mới">
+                        </div>
+
+                        <!-- Vai trò -->
+                        <div class="form-group">
+                            <label for="role">Vai trò <span class="text-danger">*</span></label>
+                            <select name="role" id="role" class="form-control">
+                                <option value="member" <%= user.role === 'member' ? 'selected' : '' %>>Member</option>
+                                <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                            </select>
+                        </div>
+
+                        <hr>
+
+                        <!-- Nút lưu -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success">
+                                <i class="glyphicon glyphicon-floppy-disk"></i> Lưu thay đổi
+                            </button>
+                            <a href="/admin/users/detail/<%= user._id %>" class="btn btn-default">
+                                <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Hướng dẫn</h3>
+                </div>
+                <div class="panel-body">
+                    <ul>
+                        <li>Email phải đúng định dạng và không trùng</li>
+                        <li>Mật khẩu mới tối thiểu 6 ký tự</li>
+                        <li>Để trống mật khẩu nếu không muốn thay đổi</li>
+                        <li>Mật khẩu và xác nhận phải khớp nhau</li>
+                        <li>Admin có toàn quyền quản trị hệ thống</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div><!--/.row-->
+</div><!--/.main-->
+
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<%-include("../layout/footer")%>

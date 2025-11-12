@@ -34,17 +34,36 @@
 					<form role="form" method="post">
 						<fieldset>
 							<div class="form-group">
-								<input class="form-control" placeholder="E-mail" name="email" type="email" autofocus>
+								<input class="form-control" placeholder="E-mail" name="email" type="email" 
+								       value="<%= rememberedEmail || '' %>" autofocus required>
 							</div>
 							<div class="form-group">
-								<input class="form-control" placeholder="Mật khẩu" name="password" type="password" value="">
+								<input class="form-control" placeholder="Mật khẩu" name="password" type="password" 
+								       value="" required>
 							</div>
 							<div class="checkbox">
 								<label>
-									<input name="remember" type="checkbox" value="Remember Me">Nhớ tài khoản
+									<input name="remember" type="checkbox" value="1" <%= rememberedEmail ? 'checked' : '' %>>
+									Nhớ tài khoản
 								</label>
 							</div>
-							<button type="submit" class="btn btn-primary">Đăng nhập</button>
+							<button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+							
+							<hr style="margin: 20px 0; border-top: 1px solid #eee;">
+							
+							<div class="text-center" style="margin-bottom: 10px;">
+								<small style="color: #999;">Hoặc đăng nhập với</small>
+							</div>
+							
+							<a href="/auth/google" class="btn btn-danger btn-block" style="background-color: #db4437; border-color: #db4437; margin-bottom: 10px;">
+								<i class="glyphicon glyphicon-plus" style="margin-right: 8px;"></i>
+								Đăng nhập bằng Google
+							</a>
+							
+							<a href="/auth/facebook" class="btn btn-primary btn-block" style="background-color: #4267B2; border-color: #4267B2;">
+								<i class="glyphicon glyphicon-thumbs-up" style="margin-right: 8px;"></i>
+								Đăng nhập bằng Facebook
+							</a>
 						</fieldset>
 					</form>
 				</div>

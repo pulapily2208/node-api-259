@@ -1,4 +1,12 @@
-<!-- footer  -->
+<footer class="site-footer" style="margin:30px 0 10px; text-align:center; font-size:13px; color:#777;">
+	<% if (setting && setting.description && setting.description.trim().length > 0) { %>
+		<div style="max-width:800px; margin:0 auto 8px; line-height:1.4;">
+			<%= setting.description %>
+		</div>
+	<% } %>
+	<div>
+		<%= setting && setting.copyright ? setting.copyright : '© 2025 MyWebsite. All rights reserved.' %>
+	</div>
+</footer>
 </body>
-
 </html>

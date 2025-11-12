@@ -1,0 +1,137 @@
+<%-include("../layout/head")%>
+<%-include("../layout/header")%>
+<%-include("../layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+  <div class="row">
+    <ol class="breadcrumb mt-3">
+      <li><a href="/admin"><svg class="glyph stroked home"><use xlink:href="#stroked-home"></use></svg></a></li>
+      <li><a href="/admin/orders">Đơn hàng</a></li>
+      <li class="active"><code><%= order._id %></code></li>
+    </ol>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <h1 class="page-header">Đơn hàng: <code><%= order._id %></code></h1>
+    </div>
+  </div>
+
+  <% if (success && typeof success === 'string' && success.trim().length) { %>
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <%= success %>
+    </div>
+  <% } %>
+  <% if (error && typeof error === 'string' && error.trim().length) { %>
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <%= error %>
+    </div>
+  <% } %>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="panel panel-default">
+        <div class="panel-heading">Thông tin đơn hàng</div>
+        <div class="panel-body">
+          <dl class="dl-horizontal">
+            <dt>Email</dt><dd><%= order.email %></dd>
+            <dt>Điện thoại</dt><dd><%= order.phone %></dd>
+            <dt>Địa chỉ</dt><dd><%= order.address %></dd>
+            <dt>Tổng tiền</dt><dd><strong><%= order.totalPrice.toLocaleString('vi-VN') %> đ</strong></dd>
+            <dt>Trạng thái</dt>
+            <dd>
+              <% if (order.status==='pending') { %>
+                <span class="label label-warning">Chờ xác nhận</span>
+              <% } else if (order.status==='confirmed') { %>
+                <span class="label label-info">Đã xác nhận</span>
+              <% } else if (order.status==='shipping') { %>
+                <span class="label label-primary">Đang giao</span>
+              <% } else if (order.status==='delivered') { %>
+                <span class="label label-success">Đã giao</span>
+              <% } else if (order.status==='canceled') { %>
+                <span class="label label-default">Đã hủy</span>
+              <% } %>
+            </dd>
+            <dt>Ngày tạo</dt><dd><%= new Date(order.createdAt).toLocaleString('vi-VN') %></dd>
+            <dt>Cập nhật</dt><dd><%= new Date(order.updatedAt).toLocaleString('vi-VN') %></dd>
+          </dl>
+
+          <hr>
+          <form action="/admin/orders/update/<%= order._id %>" method="POST" class="form-inline">
+            <div class="form-group">
+              <label for="status">Cập nhật trạng thái: </label>
+              <select name="status" id="status" class="form-control">
+                <% canUpdateStatuses.forEach(st => { %>
+                  <option value="<%= st %>" <%= st===order.status ? 'selected' : '' %>><%= st %></option>
+                <% }) %>
+              </select>
+            </div>
+            <button class="btn btn-primary"><i class="glyphicon glyphicon-refresh"></i> Lưu</button>
+            <a href="/admin/orders" class="btn btn-default"><i class="glyphicon glyphicon-arrow-left"></i> Quay lại</a>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">Sản phẩm trong đơn</div>
+        <div class="panel-body">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>SL</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (items && items.length) { %>
+                <% items.forEach(it => { %>
+                  <tr>
+                    <td style="width:70px">
+                      <% if (it.thumb) { %>
+                        <img src="/upload/<%= it.thumb %>" style="height:60px; object-fit:cover" />
+                      <% } else { %>
+                        <span class="text-muted">N/A</span>
+                      <% } %>
+                    </td>
+                    <td><%= it.name %></td>
+                    <td><%= it.qty %></td>
+                    <td><%= it.unitPrice.toLocaleString('vi-VN') %> đ</td>
+                    <td><strong><%= it.subTotal.toLocaleString('vi-VN') %> đ</strong></td>
+                  </tr>
+                <% }) %>
+                <tr>
+                  <td colspan="4" class="text-right"><strong>Tổng cộng:</strong></td>
+                  <td><strong><%= order.totalPrice.toLocaleString('vi-VN') %> đ</strong></td>
+                </tr>
+              <% } else { %>
+                <tr><td colspan="5" class="text-center text-muted">Không có sản phẩm</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="panel panel-info">
+        <div class="panel-heading">Hướng dẫn</div>
+        <div class="panel-body">
+          <ul>
+            <li>Chỉ cập nhật trạng thái khi thao tác thực tế đã hoàn thành.</li>
+            <li>Trạng thái "canceled" dành cho đơn hủy hoặc lỗi.</li>
+            <li>Không thể khôi phục đơn đã xóa.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<%-include("../layout/footer")%>

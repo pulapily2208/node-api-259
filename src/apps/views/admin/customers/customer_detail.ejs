@@ -1,0 +1,124 @@
+<%-include("../layout/head")%>
+<%-include("../layout/header")%>
+<%-include("../layout/sidebar")%>
+
+<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+    <div class="row">
+        <ol class="breadcrumb mt-3">
+            <li>
+                <a href="/admin">
+                    <svg class="glyph stroked home">
+                        <use xlink:href="#stroked-home"></use>
+                    </svg>
+                </a>
+            </li>
+            <li><a href="/admin/customers">Danh sách khách hàng</a></li>
+            <li class="active">Chi tiết khách hàng</li>
+        </ol>
+    </div><!--/.row-->
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Chi tiết khách hàng</h1>
+        </div>
+    </div><!--/.row-->
+
+    <% if (success && success.length > 0) { %>
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= success %>
+        </div>
+    <% } %>
+
+    <% if (error && error.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <%= error %>
+        </div>
+    <% } %>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Thông tin khách hàng</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width:200px;">Họ và tên</th>
+                            <td><%= customer.fullName %></td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td><%= customer.email %></td>
+                        </tr>
+                        <tr>
+                            <th>Số điện thoại</th>
+                            <td><%= customer.phone %></td>
+                        </tr>
+                        <tr>
+                            <th>Địa chỉ</th>
+                            <td><%= customer.address %></td>
+                        </tr>
+                        <tr>
+                            <th>Vai trò</th>
+                            <td>
+                                <% if (customer.role === 'admin') { %>
+                                    <span class="label label-danger">Admin</span>
+                                <% } else { %>
+                                    <span class="label label-info">Khách hàng</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Ngày đăng ký</th>
+                            <td>
+                                <%= new Date(customer.createdAt).toLocaleDateString('vi-VN') %>
+                                <%= new Date(customer.createdAt).toLocaleTimeString('vi-VN') %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Cập nhật lần cuối</th>
+                            <td>
+                                <%= new Date(customer.updatedAt).toLocaleDateString('vi-VN') %>
+                                <%= new Date(customer.updatedAt).toLocaleTimeString('vi-VN') %>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Hành động</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group-vertical btn-block">
+                        <a href="/admin/customers/edit/<%= customer._id %>" class="btn btn-primary">
+                            <i class="glyphicon glyphicon-edit"></i> Chỉnh sửa thông tin
+                        </a>
+                        <a href="/admin/customers/delete/<%= customer._id %>" 
+                           class="btn btn-danger" 
+                           onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
+                            <i class="glyphicon glyphicon-trash"></i> Xóa khách hàng
+                        </a>
+                        <a href="/admin/customers" class="btn btn-default">
+                            <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!--/.row-->
+</div><!--/.main-->
+
+<script src="/admin/js/jquery-1.11.1.min.js"></script>
+<script src="/admin/js/bootstrap.min.js"></script>
+<%-include("../layout/footer")%>

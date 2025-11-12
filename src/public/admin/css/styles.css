@@ -5,29 +5,24 @@ Version 1.0
 
 
 /*Global Styles*/
-html, body {
-    height: 100%;
-    margin: 0;
-}
+html, body { height: 100%; margin: 0; }
 body {
 	background: #f1f4f7;
 	padding-top: 50px;
 	color: #5f6468;
+	min-height: 100vh;
 	display: flex;
-    flex-direction: column;
-}
-main {
-    flex: 1; /* Đẩy footer xuống cuối trang */
-	
+	flex-direction: column;
 }
 
-footer {
-    /* margin-top: auto;
-	position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%; */
-    z-index: 1000; 
+/* Khu vực content chính dùng class .main đã có trong layout */
+.main { flex: 1 0 auto; }
+
+/* Footer luôn nằm cuối trang (sticky footer) */
+footer.site-footer {
+	margin-top: auto; /* đẩy footer xuống đáy khi nội dung ngắn */
+	background: transparent;
+	z-index: 1000;
 }
 p {
 	color: #777;

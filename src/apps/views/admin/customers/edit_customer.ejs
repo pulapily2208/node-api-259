@@ -12,14 +12,14 @@
                     </svg>
                 </a>
             </li>
-            <li><a href="/admin/users">Danh sách thành viên</a></li>
-            <li class="active">Thêm thành viên</li>
+            <li><a href="/admin/customers">Danh sách khách hàng</a></li>
+            <li class="active">Chỉnh sửa khách hàng</li>
         </ol>
     </div><!--/.row-->
 
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">Thêm thành viên</h1>
+            <h1 class="page-header">Chỉnh sửa khách hàng</h1>
         </div>
     </div><!--/.row-->
 
@@ -36,39 +36,44 @@
         <div class="col-lg-8">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Thông tin thành viên</h3>
+                    <h3 class="panel-title">Thông tin khách hàng</h3>
                 </div>
                 <div class="panel-body">
-                    <form action="/admin/users/store" method="POST">
+                    <form action="/admin/customers/update/<%= customer._id %>" method="POST">
                         
+                        <!-- Họ tên -->
+                        <div class="form-group">
+                            <label for="fullName">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" name="fullName" id="fullName" class="form-control" 
+                                   value="<%= customer.fullName %>" required>
+                        </div>
+
                         <!-- Email -->
                         <div class="form-group">
                             <label for="email">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" id="email" class="form-control" 
-                                   placeholder="example@email.com" required>
+                                   value="<%= customer.email %>" required>
                         </div>
 
-                        <!-- Mật khẩu -->
+                        <!-- Số điện thoại -->
                         <div class="form-group">
-                            <label for="password">Mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" name="password" id="password" class="form-control" 
-                                   placeholder="Tối thiểu 6 ký tự" required>
-                            <small class="help-block">Mật khẩu phải có ít nhất 6 ký tự</small>
+                            <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" id="phone" class="form-control" 
+                                   value="<%= customer.phone %>" required>
                         </div>
 
-                        <!-- Xác nhận mật khẩu -->
+                        <!-- Địa chỉ -->
                         <div class="form-group">
-                            <label for="confirmPassword">Xác nhận mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" 
-                                   placeholder="Nhập lại mật khẩu" required>
+                            <label for="address">Địa chỉ <span class="text-danger">*</span></label>
+                            <textarea name="address" id="address" rows="3" class="form-control" required><%= customer.address %></textarea>
                         </div>
 
                         <!-- Vai trò -->
                         <div class="form-group">
                             <label for="role">Vai trò <span class="text-danger">*</span></label>
                             <select name="role" id="role" class="form-control">
-                                <option value="member">Member</option>
-                                <option value="admin">Admin</option>
+                                <option value="customer" <%= customer.role === 'customer' ? 'selected' : '' %>>Khách hàng</option>
+                                <option value="admin" <%= customer.role === 'admin' ? 'selected' : '' %>>Admin</option>
                             </select>
                         </div>
 
@@ -77,9 +82,9 @@
                         <!-- Nút lưu -->
                         <div class="form-group">
                             <button type="submit" class="btn btn-success">
-                                <i class="glyphicon glyphicon-floppy-disk"></i> Thêm thành viên
+                                <i class="glyphicon glyphicon-floppy-disk"></i> Lưu thay đổi
                             </button>
-                            <a href="/admin/users" class="btn btn-default">
+                            <a href="/admin/customers/detail/<%= customer._id %>" class="btn btn-default">
                                 <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
                             </a>
                         </div>
@@ -97,10 +102,9 @@
                     <ul>
                         <li>Các trường có dấu <span class="text-danger">*</span> là bắt buộc</li>
                         <li>Email phải đúng định dạng và không trùng</li>
-                        <li>Mật khẩu tối thiểu 6 ký tự</li>
-                        <li>Mật khẩu và xác nhận phải khớp nhau</li>
-                        <li>Admin có toàn quyền quản trị hệ thống</li>
-                        <li>Member chỉ có quyền hạn chế</li>
+                        <li>Số điện thoại không được trùng</li>
+                        <li>Vai trò Admin có quyền truy cập toàn bộ hệ thống</li>
+                        <li>Không thể thay đổi mật khẩu từ đây</li>
                     </ul>
                 </div>
             </div>

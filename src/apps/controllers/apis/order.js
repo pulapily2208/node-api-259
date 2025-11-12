@@ -74,6 +74,22 @@ exports.order = async (req, res) => {
 };
 exports.findByCustomerId = async (req, res) => {
   try {
+    if (!req.customer) {
+      return res.status(401).json({
+        status: "error",
+        message: "Customer authentication required",
+      });
+    }
+
+    const orders = await OrderModel.find({ customer_id: req.customer._id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Get orders successfully",
+      data: orders,
+    });
   } catch (error) {
     return res.status(500).json({
       status: "error",
@@ -84,6 +100,30 @@ exports.findByCustomerId = async (req, res) => {
 };
 exports.findOne = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    const order = await OrderModel.findById(id).lean();
+
+    if (!order) {
+      return res.status(404).json({
+        status: "error",
+        message: "Order not found",
+      });
+    }
+
+    // Nếu là customer, kiểm tra quyền truy cập
+    if (req.customer && String(order.customer_id) !== String(req.customer._id)) {
+      return res.status(403).json({
+        status: "error",
+        message: "Access denied",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Get order successfully",
+      data: order,
+    });
   } catch (error) {
     return res.status(500).json({
       status: "error",
@@ -94,6 +134,41 @@ exports.findOne = async (req, res) => {
 };
 exports.cancel = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    const order = await OrderModel.findById(id);
+
+    if (!order) {
+      return res.status(404).json({
+        status: "error",
+        message: "Order not found",
+      });
+    }
+
+    // Nếu là customer, kiểm tra quyền sở hữu
+    if (req.customer && String(order.customer_id) !== String(req.customer._id)) {
+      return res.status(403).json({
+        status: "error",
+        message: "Access denied",
+      });
+    }
+
+    // Chỉ cho phép hủy đơn hàng ở trạng thái pending hoặc confirmed
+    if (!["pending", "confirmed"].includes(order.status)) {
+      return res.status(400).json({
+        status: "error",
+        message: `Cannot cancel order with status: ${order.status}`,
+      });
+    }
+
+    order.status = "canceled";
+    await order.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Order canceled successfully",
+      data: order,
+    });
   } catch (error) {
     return res.status(500).json({
       status: "error",

@@ -6,7 +6,7 @@
   <div class="row">
     <ol class="breadcrumb mt-3">
       <li>
-        <a href="/api/admin/dashboard">
+        <a href="/admin">
           <svg class="glyph stroked home">
             <use xlink:href="#stroked-home"></use>
           </svg>
@@ -28,33 +28,56 @@
         <div class="panel-body">
           <div class="col-md-12">
 
-            <% if (message) { %>
-              <div class="alert <%= success ? 'alert-success' : 'alert-danger' %>">
-                <%= message %>
+            <% if (success && typeof success === 'string' && success.trim().length > 0) { %>
+              <div class="alert alert-success alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <%= success %>
               </div>
             <% } %>
 
-            <form action="/api/admin/setting/update" method="POST" enctype="multipart/form-data">
+            <% if (error && typeof error === 'string' && error.trim().length > 0) { %>
+              <div class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <%= error %>
+              </div>
+            <% } %>
+
+            <form action="/admin/settings/update" method="POST" enctype="multipart/form-data">
+
+              <!-- Shop Name -->
+              <div class="form-group">
+                <label>Tên Shop :</label>
+                <input type="text" name="shop_name" value="<%= setting.shop_name %>" class="form-control" placeholder="Nhập tên shop..." maxlength="60">
+              </div>
 
               <!-- Logo -->
               <div class="form-group">
                 <label>Logo hiện tại:</label><br>
-                <img src="../upload/<%= setting.thumbnail_logo %>" 
-                     alt="Logo hiện tại" style="max-height:150px; margin-bottom:10px;">
-                <input type="file" name="thumbnail_logo" class="form-control">
+                <% if (setting.thumbnail_logo) { %>
+                  <img src="/upload/<%= setting.thumbnail_logo %>" 
+                       alt="Logo hiện tại" style="max-height:150px; margin-bottom:10px;" 
+                       onerror="this.src='/upload/logo/default-logo.png'">
+                <% } else { %>
+                  <p class="text-muted">Chưa có logo</p>
+                <% } %>
+                <input type="file" name="thumbnail_logo" class="form-control" accept="image/*">
               </div>
 
               <!-- Description -->
               <div class="form-group">
                 <label>Mô tả footer:</label>
-                <textarea name="description" rows="3" class="form-control" placeholder="Nhập mô tả..."><%=  oldData.description ||  setting.description  %></textarea>
+                <textarea name="description" rows="3" class="form-control" placeholder="Nhập mô tả..."><%= setting.description %></textarea>
               </div>
 
             <!-- Copyright -->
             <div class="form-group">
                 <label>Bản quyền: </label>
             
-                <input type="text" name="copyright" value="<%= oldData.copyright || setting.copyright %>" class="form-control"
+                <input type="text" name="copyright" value="<%= setting.copyright %>" class="form-control"
                     placeholder="© 2025 MyWebsite. All rights reserved.">
             </div>
 
