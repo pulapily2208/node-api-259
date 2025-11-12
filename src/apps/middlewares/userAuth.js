@@ -16,6 +16,23 @@ const verifyUserAccessToken = async (req, res, next) => {
 
         // verify() bây giờ là Promise
         const decoded = await verify(token, config.get("app.jwtAccessKey"));
+        
+        // Kiểm tra role: Chỉ cho phép admin hoặc member, từ chối customer
+        if (decoded.role === "customer") {
+            return res.status(403).json({
+                status: "error",
+                message: "Access denied. This endpoint is only for admin/member users."
+            });
+        }
+        
+        // Kiểm tra role phải là admin hoặc member
+        if (!decoded.role || (decoded.role !== "admin" && decoded.role !== "member")) {
+            return res.status(403).json({
+                status: "error",
+                message: "Access denied. Invalid user role."
+            });
+        }
+        
         req.user = decoded; 
         next();
     } catch (error) {
@@ -42,6 +59,23 @@ const verifyUserRefreshToken = async (req, res, next) => {
 
         // verify() bây giờ là Promise
         const decoded = await verify(refreshToken, config.get("app.jwtRefreshKey"));
+        
+        // Kiểm tra role: Chỉ cho phép admin hoặc member, từ chối customer
+        if (decoded.role === "customer") {
+            return res.status(403).json({
+                status: "error",
+                message: "Access denied. This endpoint is only for admin/member users."
+            });
+        }
+        
+        // Kiểm tra role phải là admin hoặc member
+        if (!decoded.role || (decoded.role !== "admin" && decoded.role !== "member")) {
+            return res.status(403).json({
+                status: "error",
+                message: "Access denied. Invalid user role."
+            });
+        }
+        
         req.user = decoded;
         next();
     } catch (error) {

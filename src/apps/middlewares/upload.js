@@ -116,6 +116,7 @@ const handleUpload = (subfolder, options = {}) => {
 
 module.exports = {
   uploadProduct: handleUpload("products", { isMandatory: true }),
+  uploadProductUpdate: handleUpload("products", { isMandatory: false }),
   uploadLogo: handleUpload("logo"),
   uploadSlider: handleUpload("sliders", { isMandatory: false }), 
   uploadBanner: handleUpload("banners", { isMandatory: false }),

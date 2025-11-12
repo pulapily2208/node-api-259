@@ -6,9 +6,14 @@ const commentSchema = new mongoose.Schema(
       ref: "Products",
       required: true,
     },
+    customer_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "Customers",
+      required: false,
+    },
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     full_name: {
       type: String,
@@ -18,7 +23,7 @@ const commentSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
+      required: false,
     },
     content: {
       type: String,

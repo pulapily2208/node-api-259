@@ -66,21 +66,24 @@ exports.findOne = async (req, res) => {
 // API thêm mới sản phẩm có upload ảnh
 exports.create = async (req, res) => {
   try {
-    if (!req.file) {
+    // Middleware upload.uploadProduct đã xử lý và set vào req.body.image
+    // Nếu không có ảnh, middleware đã trả lỗi trước khi đến đây (isMandatory: true)
+    
+    if (!req.body.image && !req.uploadedFile) {
       return res.status(400).json({
         status: "error",
         message: "Product image is required",
       });
     }
 
-    // Đường dẫn công khai lưu trong DB: /upload/products/tên_file.jpg
-    const imagePath = `/upload/${PRODUCT_SUBFOLDER}/${req.file.filename}`;
+    // Đường dẫn ảnh đã được middleware set vào req.body.image
+    const imagePath = req.body.image;
     
     const productData = {
       ...req.body,
       image: imagePath,
-      is_stock: req.body.is_stock === 'true', 
-      is_featured: req.body.is_featured === 'true', 
+      is_stock: req.body.is_stock === 'true' || req.body.is_stock === true, 
+      is_featured: req.body.is_featured === 'true' || req.body.is_featured === true, 
     };
 
     const product = await ProductModel.create(productData);
@@ -93,8 +96,8 @@ exports.create = async (req, res) => {
     });
   } catch (error) {
     // Xóa file nếu có lỗi xảy ra sau khi upload nhưng trước khi lưu DB
-    if (req.file) {
-      const filePath = path.join(PRODUCT_UPLOAD_DIR, req.file.filename);
+    if (req.uploadedFile) {
+      const filePath = path.join(PRODUCT_UPLOAD_DIR, req.uploadedFile.filename);
       if (fs.existsSync(filePath)) {
         fs.unlink(filePath, (err) => {
           if (err) console.error("Failed to delete file after DB error:", err);
@@ -118,8 +121,8 @@ exports.update = async (req, res) => {
     const product = await ProductModel.findById(id);
     if (!product) {
       // Nếu không tìm thấy sản phẩm, xóa file mới nếu đã upload
-      if (req.file) {
-        const filePath = path.join(PRODUCT_UPLOAD_DIR, req.file.filename);
+      if (req.uploadedFile) {
+        const filePath = path.join(PRODUCT_UPLOAD_DIR, req.uploadedFile.filename);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
@@ -130,10 +133,10 @@ exports.update = async (req, res) => {
       });
     }
     
-    // Xử lý upload ảnh mới (nếu có)
-    if (req.file) {
-      // 1. Xóa ảnh cũ
-      if (product.image) {
+    // Xử lý upload ảnh mới (nếu có) - middleware đã set vào req.body.image
+    if (req.uploadedFile || req.body.image !== product.image) {
+      // 1. Xóa ảnh cũ nếu có ảnh mới được upload
+      if (req.uploadedFile && product.image) {
         const oldImageFilename = path.basename(product.image); 
         const oldImagePath = path.join(PRODUCT_UPLOAD_DIR, oldImageFilename);
         
@@ -144,15 +147,17 @@ exports.update = async (req, res) => {
         }
       }
 
-      // 2. Cập nhật đường dẫn ảnh mới
-      updateData.image = `/upload/${PRODUCT_SUBFOLDER}/${req.file.filename}`;
+      // 2. Đường dẫn ảnh mới đã được middleware set vào req.body.image
+      if (req.body.image) {
+        updateData.image = req.body.image;
+      }
     }
     
     if (updateData.is_stock !== undefined) {
-         updateData.is_stock = updateData.is_stock === 'true';
+         updateData.is_stock = updateData.is_stock === 'true' || updateData.is_stock === true;
     }
     if (updateData.is_featured !== undefined) {
-         updateData.is_featured = updateData.is_featured === 'true';
+         updateData.is_featured = updateData.is_featured === 'true' || updateData.is_featured === true;
     }
 
     const updatedProduct = await ProductModel.findByIdAndUpdate(
@@ -168,8 +173,8 @@ exports.update = async (req, res) => {
     });
   } catch (error) {
     // Xóa file mới nếu có lỗi xảy ra sau khi upload nhưng trước khi lưu DB
-    if (req.file) {
-      const filePath = path.join(PRODUCT_UPLOAD_DIR, req.file.filename);
+    if (req.uploadedFile) {
+      const filePath = path.join(PRODUCT_UPLOAD_DIR, req.uploadedFile.filename);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }

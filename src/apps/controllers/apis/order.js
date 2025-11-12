@@ -25,23 +25,35 @@ exports.order = async (req, res) => {
     let orderMail = [];
     const { items } = req.body;
     for (let item of items) {
-      const product = await ProductModel.findById(item.prd_id);
+      // Hỗ trợ cả product_id và prd_id
+      const productId = item.product_id || item.prd_id;
+      
+      if (!productId) {
+        return res.status(400).json({
+          status: "error",
+          message: "Product ID is required in each item",
+        });
+      }
+      
+      const product = await ProductModel.findById(productId);
       if (!product) {
         return res.status(400).json({
           status: "error",
-          message: `Product ${item.prd_id} not found`,
+          message: `Product ${productId} not found`,
         });
       }
       const itemPrice = product.price;
-      totalPrice += item.qty * itemPrice;
+      const quantity = item.quantity || item.qty || 1;
+      
+      totalPrice += quantity * itemPrice;
       orderItems.push({
         prd_id: product._id,
-        qty: item.qty,
+        qty: quantity,
         price: itemPrice,
       });
       orderMail.push({
         name: product.name,
-        qty: item.qty,
+        qty: quantity,
         price: itemPrice,
       });
     }

@@ -64,6 +64,7 @@ const {
 const {
   verifyAccessToken,
   verifyRefreshToken,
+  optionalVerifyAccessToken,
 } = require("../apps/middlewares/customerAuth");
 // upload middlewares are available via `upload` (required above)
 
@@ -106,6 +107,9 @@ router.get(
 
 router.post("/auth/customers/forgot-password", CustomerAuthController.forgotPassword);
 router.post("/auth/customers/reset-password", CustomerAuthController.resetPassword);
+
+// OAuth Info endpoint (để test)
+router.get("/auth/oauth-info", CustomerAuthController.getOAuthInfo);
 
 // USER AUTH ROUTES (Admin/Member)
 router.post(
@@ -165,7 +169,7 @@ router.get(
 
 router.post(
   "/categories",
-  verifyAccessToken,
+  verifyUserAccessToken,
   createCategoryRules,
   createCategoryValidator,
   CategoryController.create
@@ -173,7 +177,7 @@ router.post(
 
 router.patch(
   "/categories/:id",
-  verifyAccessToken,
+  verifyUserAccessToken,
   updateCategoryRules,
   createCategoryValidator,
   CategoryController.update
@@ -181,7 +185,7 @@ router.patch(
 
 router.delete(
   "/categories/:id",
-  verifyAccessToken,
+  verifyUserAccessToken,
   findOneOrRemoveCategoryRules,
   createCategoryValidator,
   CategoryController.remove
@@ -192,7 +196,7 @@ router.get("/products", ProductController.findAll);
 
 router.post(
   "/products",
-  verifyAccessToken,
+  verifyUserAccessToken,
   upload.uploadProduct,
   createProductRules,
   productValidationHandler,
@@ -208,8 +212,17 @@ router.get(
 
 router.put(
   "/products/:id",
-  verifyAccessToken,
-  upload.uploadProduct,
+  verifyUserAccessToken,
+  upload.uploadProductUpdate,
+  updateProductRules,
+  productValidationHandler,
+  ProductController.update
+);
+
+router.patch(
+  "/products/:id",
+  verifyUserAccessToken,
+  upload.uploadProductUpdate,
   updateProductRules,
   productValidationHandler,
   ProductController.update
@@ -217,13 +230,20 @@ router.put(
 
 router.delete(
   "/products/:id",
-  verifyAccessToken,
+  verifyUserAccessToken,
   findOneOrRemoveProductRules,
   productValidationHandler,
   ProductController.remove
 );
 
 // COMMENT API
+// Lấy tất cả comments (không cần product_id)
+router.get(
+  "/comments",
+  CommentController.findAll
+);
+
+// Lấy comments theo product_id
 router.get(
   "/products/:id/comments",
   findByProductIdRules,
@@ -231,16 +251,18 @@ router.get(
   CommentController.findByProductId
 );
 
+// Route duy nhất cho cả customer và khách vãng lai
+// - Có token: Customer đã đăng nhập → chỉ cần content
+// - Không có token: Khách vãng lai → cần name, email, content
 router.post(
   "/products/:id/comments",
-  createCommentRules,
-  commentValidationHandler,
+  optionalVerifyAccessToken,
   CommentController.create
 );
 
 router.patch(
   "/comments/:id/status",
-  verifyAccessToken,
+  verifyUserAccessToken,
   updateCommentStatusRules,
   commentValidationHandler,
   CommentController.updateStatus
@@ -248,7 +270,7 @@ router.patch(
 
 router.delete(
   "/comments/:id",
-  verifyAccessToken,
+  verifyUserAccessToken,
   removeCommentRules,
   commentValidationHandler,
   CommentController.remove

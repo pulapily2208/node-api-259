@@ -295,21 +295,54 @@ exports.socialLoginCallback = async (req, res) => {
         maxAge: 24 * 60 * 60 * 1000, // 1 ngày
     });
     
-    // Chuyển hướng về Frontend với Access Token trong URL
-    // (Thay thế http://localhost:8080 bằng URL Frontend của bạn)
-    // return res.redirect(`http://localhost:8080/login-success?accessToken=${accessToken}&customerId=${customer._id}`);
+    // Trả về JSON để test với Postman/API client
     return res.status(200).json({
         status: "success",
         message: "Social login success. JWT generated.",
-        customer: customer,
-        accessToken: accessToken,
-        refreshTokenCookie: "Set in header" 
+        data: {
+            customer: {
+                id: customer._id,
+                fullName: customer.fullName,
+                email: customer.email,
+                role: customer.role
+            },
+            accessToken: accessToken,
+        }
     });
   } catch (error) {
     console.error("Social Login Callback Error:", error);
     return res.status(500).json({
       status: "error",
       message: "Internal server error during social login callback",
+      error: error.message,
+    });
+  }
+};
+
+// API để lấy thông tin về Google OAuth URLs (dùng cho testing)
+exports.getOAuthInfo = async (req, res) => {
+  try {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return res.status(200).json({
+      status: "success",
+      message: "OAuth information",
+      data: {
+        google: {
+          loginUrl: `${baseUrl}/auth/google`,
+          callbackUrl: `${baseUrl}/auth/google/callback`,
+          instruction: "Open loginUrl in browser to authenticate with Google"
+        },
+        facebook: {
+          loginUrl: `${baseUrl}/auth/facebook`,
+          callbackUrl: `${baseUrl}/auth/facebook/callback`,
+          instruction: "Open loginUrl in browser to authenticate with Facebook"
+        }
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
       error: error.message,
     });
   }

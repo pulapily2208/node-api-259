@@ -78,3 +78,41 @@ exports.verifyRefreshToken = async (req, res, next) => {
     });
   }
 };
+
+// Middleware optional: Kiểm tra token nếu có, không bắt buộc
+exports.optionalVerifyAccessToken = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    
+    // Nếu không có token, bỏ qua và cho phép tiếp tục (khách vãng lai)
+    if (!token) {
+      req.customer = null;
+      return next();
+    }
+
+    // Kiểm tra token trong blacklist
+    const isTokenBlacklist = await redisClient.get(`tb_${token}`);
+    if (isTokenBlacklist) {
+      req.customer = null;
+      return next();
+    }
+
+    // Verify token
+    jwt.verify(token, config.get("app.jwtAccessKey"), async (err, decoded) => {
+      if (err) {
+        // Token không hợp lệ hoặc hết hạn, vẫn cho qua như khách vãng lai
+        req.customer = null;
+        return next();
+      }
+
+      // Token hợp lệ, lấy thông tin customer
+      const customer = await CustomerModel.findById(decoded.id).select("-password");
+      req.customer = customer;
+      next();
+    });
+  } catch (error) {
+    // Có lỗi gì cũng cho qua như khách vãng lai
+    req.customer = null;
+    next();
+  }
+};
