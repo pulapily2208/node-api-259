@@ -2,7 +2,7 @@ const CommentModel = require("../../models/comment");
 const paginate = require("../../../libs/paginate");
 
 const PROHIBITED_WORDS = [
-  "đcm","đm","cmm","cc","shit","cút","mm","fuck","đéo","lồn","địt","chó","bitch","damn"
+  "đcm","đm","cmm","cc","shit","cút","mm","fuck","đéo","chó","bitch","damn"
 ];
 
 const censorProfanity = (content) => {
@@ -19,22 +19,17 @@ const censorProfanity = (content) => {
   return censoredContent; 
 };
 
-// Lấy tất cả comments (không cần product_id)
 exports.findAll = async (req, res) => {
   try {
     const query = {};
-    
-    // Filter theo status nếu có
     if (req.query.status) {
       query.status = req.query.status;
     }
     
-    // Filter theo product_id nếu có
     if (req.query.product_id) {
       query.product_id = req.query.product_id;
     }
-    
-    // Filter theo customer_id nếu có
+
     if (req.query.customer_id) {
       query.customer_id = req.query.customer_id;
     }
